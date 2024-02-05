@@ -1,5 +1,12 @@
 import { Link, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure } from "@nextui-org/react";
 
+declare global {
+  interface Window {
+      atom: any;
+      unisat: any;
+  }
+}
+
 export const WalletConnect = () => {
 
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
