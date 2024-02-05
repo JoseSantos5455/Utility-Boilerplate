@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
+import { LayoutWithNextUI } from "../components/layouts/layout-with-nextui";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -16,7 +17,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <LayoutWithNextUI>
+          {children}
+        </LayoutWithNextUI>
+      </body>
     </html>
   );
 }
