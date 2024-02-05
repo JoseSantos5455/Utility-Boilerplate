@@ -1,4 +1,6 @@
+import { WalletContext } from "@/components/layouts/layout-with-nextui";
 import { Link, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure } from "@nextui-org/react";
+import { useContext } from "react";
 
 declare global {
   interface Window {
@@ -8,6 +10,8 @@ declare global {
 }
 
 export const WalletConnect = () => {
+
+  const walletData = useContext(WalletContext)
 
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
 
