@@ -1,6 +1,6 @@
-import { WalletContext } from "@/components/layouts/layout-with-nextui";
 import { Link, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure } from "@nextui-org/react";
 import { useContext } from "react";
+import { WalletContext } from "@/common/WalletContextProvider";
 
 declare global {
   interface Window {
@@ -11,7 +11,7 @@ declare global {
 
 export const WalletConnect = () => {
 
-  const walletData = useContext(WalletContext)
+  const { walletData, setWalletData } = useContext(WalletContext)
 
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
 
@@ -19,7 +19,13 @@ export const WalletConnect = () => {
     if (window.atom && typeof window.atom !== undefined) {
       try {
         let accounts = await window.atom.requestAccounts();
-        console.log('connect success', accounts);
+        console.log(accounts)
+        setWalletData({
+          ...walletData,
+          type: 'wizz',
+          connected: true,
+          legacy_addr: accounts[0]
+        })
       } catch (e) {
         console.log('connect failed');
       }
@@ -30,7 +36,12 @@ export const WalletConnect = () => {
     if (window.unisat && typeof window.unisat !== undefined) {
       try {
         let accounts = await window.unisat.requestAccounts();
-        console.log('connect success', accounts);
+        setWalletData({
+          ...walletData,
+          type: 'unisat',
+          connected: true,
+          legacy_addr: accounts[0]
+        })
       } catch (e) {
         console.log('connect failed');
       }
@@ -39,9 +50,17 @@ export const WalletConnect = () => {
   
   return (
     <>
-      <Button color="primary" variant="bordered" onPress={onOpen}>
-        Connect Wallet
-      </Button>
+      {
+        walletData.connected ? (
+          <Button color="primary" variant="bordered">
+            {walletData.legacy_addr}
+          </Button>
+        ) : (
+          <Button color="primary" variant="bordered" onPress={onOpen}>
+            Connect Wallet
+          </Button>
+        )
+      }
 
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
         <ModalContent>
@@ -71,6 +90,11 @@ export const WalletConnect = () => {
                     ))
                   }
                 </div>
+                {/* <div>
+                  <Button color="primary" variant="bordered" onPress={() => console.log(walletData)}>
+                    Connect Unisat Wallet
+                  </Button>
+                </div> */}
               </ModalBody>
               {/* <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>

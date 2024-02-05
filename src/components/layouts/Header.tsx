@@ -3,9 +3,6 @@ import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button } from "@n
 import { Logo } from "./Logo"
 import { WalletConnect } from "@/common/WalletConnect"
 
-import { useState } from "react"
-
-
 export const Header = () => {
 
   const menuItems = [
@@ -22,8 +19,6 @@ export const Header = () => {
       href: "/inscribe"
     }
   ]
-
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
     <>
