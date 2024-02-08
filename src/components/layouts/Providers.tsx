@@ -12,7 +12,7 @@ export const Providers = ({
   return (
     <NextUIProvider>
       <Header></Header>
-        <div>
+        <div className="text-center">
           {children}
         </div>
       <Footer></Footer>

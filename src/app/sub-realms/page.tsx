@@ -1,4 +1,4 @@
-export default function Realm () {
+export default function SubRealm () {
   return (
     <>
       I am Sub Realms Page

@@ -12,8 +12,8 @@ export default function Realms () {
 
   const fetchSubrealms = async () => {
     setPageState('loading')
-    // const response = await axios.get(`https://ep.atomicals.xyz/proxy/blockchain.atomicals.get_realm_info?params=[\"${realmName}\",1]`)
     const response = await axios.get(`https://ep.atomicals.xyz/proxy/blockchain.atomicals.get_realm_info?params=[\"${realmName}\",1]`)
+    // const response = await axios.get(`https://eptestnet.atomicals.xyz/proxy/blockchain.atomicals.get_realm_info?params=[\"${realmName}\",1]`)
     if (response.data && response.data.success) {
       const { result } = response.data.response
       console.log(result)
@@ -25,8 +25,9 @@ export default function Realms () {
   }
 
   return (
-    <div className="flex flex-col text-center">
+    <div className="flex flex-col text-center max-w-5xl">
       <Input
+        placeholder="Search realms and subrealms..."
         disabled={pageState === 'loading'}
         value={realmName}
         onChange={e => setRealmName(e.target.value)}
