@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react";
-// import { useLocalStorage } from "usehooks-ts";
-import { useWalletConnected, useWalletCurrentAddress, useWalletType } from "@/hooks/use-wallet";
+import { useLocalStorage } from "usehooks-ts";
+// import { useWalletConnected, useWalletCurrentAddress, useWalletType } from "@/hooks/use-wallet";
 
 import { Modal, ModalBody, ModalHeader, Button, ModalContent, Link } from "@nextui-org/react";
 
@@ -15,13 +15,14 @@ declare global {
 export const WalletConnect = () => {
 
   const [isModalOpen, setModalOpen] = useState(false)
-  // const [walletConnected, setWalletConnected] = useLocalStorage<string>('walletConnected', () => localStorage.getItem('walletConnect') || 'waiting')
-  // const [walletType, setWalletType] = useLocalStorage<string>('walletType', () => localStorage.getItem('walletType') || 'atom')
-  // const [walletCurrentAddress, setWalletCurrentAddress] = useLocalStorage<string>('walletCurrentAddress', () => localStorage.getItem('walletConnect') || '')
 
-  const [walletConnected, setWalletConnected] = useWalletConnected()
-  const [walletType, setWalletType] = useWalletType()
-  const [walletCurrentAddress, setWalletCurrentAddress] = useWalletCurrentAddress()
+  const [walletConnected, setWalletConnected] = useLocalStorage<string>('walletConnected', () => localStorage.getItem('walletConnect') || 'waiting')
+  const [walletType, setWalletType] = useLocalStorage<string>('walletType', () => localStorage.getItem('walletType') || 'atom')
+  const [walletCurrentAddress, setWalletCurrentAddress] = useLocalStorage<string>('walletCurrentAddress', () => localStorage.getItem('walletConnect') || '')
+
+  // const [walletConnected, setWalletConnected] = useWalletConnected()
+  // const [walletType, setWalletType] = useWalletType()
+  // const [walletCurrentAddress, setWalletCurrentAddress] = useWalletCurrentAddress()
   
   const connectWizz = async () => {
     if (typeof window !== 'undefined' && typeof window.atom !== 'undefined') {

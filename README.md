@@ -34,3 +34,34 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+
+
+
+
+
+## ref
+Realm check
+
+https://ep.atomicals.xyz/proxy/blockchain.atomicals.get_realm_info?params=[%22asdsdgasdg%22,%200]
+https://ep.atomicals.xyz/proxy/blockchain.atomicals.get_realm_info
+POST
+{
+  params: ['fly', 0]
+}
+
+resp{
+  result: { with null points}
+  success
+}
+
+
+
+
+
+get my atomicals
+https://atomindexer.satsx.io/proxy/blockchain.atomicals.listscripthash
+POST
+{
+  params: [scripthash, true]
+}

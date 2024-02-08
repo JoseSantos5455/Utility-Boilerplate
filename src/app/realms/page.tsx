@@ -32,6 +32,7 @@ export default function Realms () {
         value={realmName}
         onChange={e => setRealmName(e.target.value)}
         onKeyUp={(e) => {
+          console.log(e.key, realmName)
           if ( e.key === 'Enter' && realmName !== '' )
             fetchSubrealms()
         }}

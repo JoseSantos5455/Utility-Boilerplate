@@ -39,7 +39,7 @@ export const Header = () => {
         </NavbarContent>
 
         <NavbarContent justify="end">
-          <WalletConnect />
+          {/* <WalletConnect /> */}
         </NavbarContent>
 
       </Navbar>

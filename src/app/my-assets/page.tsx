@@ -12,8 +12,8 @@ export default function MyAssets () {
   const realmName = 'bullrun.1'
 
   useEffect(() => {
-    const addr: string = localStorage.getItem('walletCurrentAddress') || ''
-    setCurrentAddr(addr)
+    // const addr: string = localStorage.getItem('walletCurrentAddress') || ''
+    // setCurrentAddr(addr)
   }, [])
 
   useEffect(() => {
