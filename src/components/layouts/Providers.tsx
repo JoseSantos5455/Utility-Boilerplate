@@ -2,7 +2,6 @@
 import { Header } from "@/components/layouts/Header";
 import { Footer } from "@/components/layouts/Footer";
 import { NextUIProvider } from "@nextui-org/react";
-import WalletContextProvider from "@/common/WalletContextProvider";
 
 export const Providers = ({
   children,
@@ -12,13 +11,11 @@ export const Providers = ({
 
   return (
     <NextUIProvider>
-      <WalletContextProvider>
-        <Header></Header>
-          <div>
-            {children}
-          </div>
-        <Footer></Footer>
-      </WalletContextProvider>
+      <Header></Header>
+        <div>
+          {children}
+        </div>
+      <Footer></Footer>
     </NextUIProvider>
   );
 }

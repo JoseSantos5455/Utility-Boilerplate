@@ -1,22 +1,22 @@
-import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button } from "@nextui-org/react"
+import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link } from "@nextui-org/react"
 
 import { Logo } from "./Logo"
-import { WalletConnect } from "@/common/WalletConnect"
+import { WalletConnect } from "@/components/WalletConnect"
 
 export const Header = () => {
 
   const menuItems = [
     {
-      text: "Realms",
+      text: "Realm",
       href: "/realms"
     },
     {
-      text: "Mine Subrealms",
-      href: "/mine-subrealm"
+      text: "Subrealms",
+      href: "/sub-realms"
     },
     {
-      text: "Inscribe",
-      href: "/inscribe"
+      text: "My Assets",
+      href: "/my-assets"
     }
   ]
 
