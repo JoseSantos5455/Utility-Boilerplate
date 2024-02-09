@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import axios from 'axios'
 import { Input } from "@nextui-org/react";
 
-export default function Realms () {
+export default function Check () {
 
   const [realmName, setRealmName] = useState('')
   const [atomicalId, setAtomicalId] = useState('')
@@ -25,9 +25,9 @@ export default function Realms () {
   }
 
   return (
-    <div className="flex flex-col text-center max-w-5xl">
+    <div className="mt-4">
       <Input
-        placeholder="Search realms and subrealms..."
+        placeholder="Check realms and subrealms..."
         disabled={pageState === 'loading'}
         value={realmName}
         onChange={e => setRealmName(e.target.value)}
@@ -39,17 +39,20 @@ export default function Realms () {
         // contentRight={<Loading size="xs" />}
       />
 
-      <div>
+      <div className="mt-4">
         {
           pageState === 'loading' ? 'searching' : (!atomicalId ? 'This is still available !!!' : 'This has been already claimed ...')
         }
       </div>
-      <div>
-        { pageState === 'loading' ? 'searching' : atomicalId }
-      </div>
 
-      <div>
-        { pageState === 'loading' ? 'searching' : fullRealmName }
+      <div className="flex flex-row justify-between mt-5">
+        <div>
+          { pageState === 'loading' ? 'searching' : atomicalId }
+        </div>
+
+        <div>
+          { pageState === 'loading' ? 'searching' : fullRealmName }
+        </div>
       </div>
 
     </div>

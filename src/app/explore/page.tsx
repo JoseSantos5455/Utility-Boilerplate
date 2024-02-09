@@ -28,12 +28,12 @@ export default function Explore () {
   }, [])
 
   return (
-    <div>
+    <div className="mt-4">
       <div>
         <Input
           // clearable
           // bordered
-          color="primary"
+          color="default"
           placeholder="Search realm names here..."
           // labelPlaceholder="Search realms and subrealms..."
           disabled={pageState === 'loading'}

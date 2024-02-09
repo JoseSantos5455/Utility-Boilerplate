@@ -12,13 +12,13 @@ export const Header = () => {
       href: "/explore"
     },
     {
-      text: "Realm",
-      href: "/realms"
+      text: "Check",
+      href: "/check"
     },
-    {
-      text: "Subrealms",
-      href: "/sub-realms"
-    },
+    // {
+    //   text: "Subrealms",
+    //   href: "/sub-realms"
+    // },
     {
       text: "My Assets",
       href: "/my-assets"
