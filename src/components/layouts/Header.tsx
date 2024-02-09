@@ -1,10 +1,14 @@
 "use client"
-import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link } from "@nextui-org/react"
+import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Switch } from "@nextui-org/react"
 
 import { Logo } from "./Logo"
-// import { WalletConnect } from "@/components/WalletConnect"
+import { useContext } from "react"
+import { NetworkContext } from "@/common/NetworkContextProvider"
+import { WalletConnect } from "@/components/WalletConnect"
 
 export const Header = () => {
+
+  const { network, setNetwork } = useContext(NetworkContext)
 
   const menuItems = [
     {
@@ -15,10 +19,6 @@ export const Header = () => {
       text: "Check",
       href: "/check"
     },
-    // {
-    //   text: "Subrealms",
-    //   href: "/sub-realms"
-    // },
     {
       text: "My Assets",
       href: "/my-assets"
@@ -44,7 +44,16 @@ export const Header = () => {
         </NavbarContent>
 
         <NavbarContent justify="end">
-          {/* <WalletConnect /> */}
+          <WalletConnect />
+          <Switch
+            defaultSelected
+            size="lg"
+            color="primary"
+            isSelected={network === 'mainnet'}
+            onValueChange={isSelected => setNetwork(isSelected ? 'mainnet' : 'testnet')}
+          >
+            {network}
+          </Switch>
         </NavbarContent>
 
       </Navbar>

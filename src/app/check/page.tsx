@@ -1,7 +1,8 @@
 "use client"
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import axios from 'axios'
 import { Input } from "@nextui-org/react";
+import { NetworkContext } from "@/common/NetworkContextProvider";
 
 export default function Check () {
 
@@ -9,11 +10,11 @@ export default function Check () {
   const [atomicalId, setAtomicalId] = useState('')
   const [fullRealmName, setFullRealmName] = useState('')
   const [pageState, setPageState] = useState('ready')
+  const { network, api_endpoint } = useContext(NetworkContext)
 
   const fetchSubrealms = async () => {
     setPageState('loading')
-    const response = await axios.get(`https://ep.atomicals.xyz/proxy/blockchain.atomicals.get_realm_info?params=[\"${realmName}\",1]`)
-    // const response = await axios.get(`https://eptestnet.atomicals.xyz/proxy/blockchain.atomicals.get_realm_info?params=[\"${realmName}\",1]`)
+    const response = await axios.get(`${api_endpoint}/blockchain.atomicals.get_realm_info?params=[\"${realmName}\",1]`)
     if (response.data && response.data.success) {
       const { result } = response.data.response
       console.log(result)

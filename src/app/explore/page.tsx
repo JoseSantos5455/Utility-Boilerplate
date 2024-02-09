@@ -1,18 +1,20 @@
 "use client"
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { NetworkContext } from "@/common/NetworkContextProvider";
 import axios from 'axios'
-
 import { Input } from "@nextui-org/react";
 
 export default function Explore () {
 
+  const { network, api_endpoint } = useContext(NetworkContext)
   const [searchStr, setSearchStr] = useState('')
   const [items, setItems] = useState([])
   const [pageState, setPageState] = useState('ready')
 
   const fetchRealms = async () => {
+    console.log(`searching on ${network} with ${api_endpoint}`)
     setPageState('loading')
-    const response = await axios.get(`${process.env.NEXT_PUBLIC_CURRENT_PROXY}/blockchain.atomicals.find_realms?params=[\"${searchStr}\",0]`)
+    const response = await axios.get(`${api_endpoint}/blockchain.atomicals.find_realms?params=[\"${searchStr}\",0]`)
     if (response.data && response.data.success) {
       const { success } = response.data
       if (success) {
@@ -25,7 +27,7 @@ export default function Explore () {
 
   useEffect(() => {
     fetchRealms()
-  }, [])
+  }, [api_endpoint])
 
   return (
     <div className="mt-4">
@@ -41,7 +43,7 @@ export default function Explore () {
           value={searchStr}
           onChange={e => setSearchStr(e.target.value)}
           onKeyUp={(e) => {
-            if ( e.key === 'Enter' && searchStr !== '' )
+            if ( e.key === 'Enter' )
               fetchRealms()
           }}
         />
