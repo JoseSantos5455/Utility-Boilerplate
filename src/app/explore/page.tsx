@@ -1,5 +1,5 @@
 "use client"
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 import { NetworkContext } from "@/common/NetworkContextProvider";
 import axios from 'axios'
 import { Input } from "@nextui-org/react";
@@ -11,40 +11,44 @@ export default function Explore () {
   const [items, setItems] = useState([])
   const [pageState, setPageState] = useState('ready')
 
-  const fetchRealms = async () => {
-    console.log(`searching on ${network} with ${api_endpoint}`)
+  const fetchRealms = useCallback( async (endpoint: string, filter: string) => {
+    console.log(`fetch is ${endpoint}`)
     setPageState('loading')
-    const response = await axios.get(`${api_endpoint}/blockchain.atomicals.find_realms?params=[\"${searchStr}\",0]`)
-    if (response.data && response.data.success) {
-      const { success } = response.data
-      if (success) {
-        const { result } = response.data.response
-        setItems(result)
+
+    try {
+      const response = await axios.get(`${endpoint}/blockchain.atomicals.find_realms?params=[\"${filter}\",0]`)
+      if (response.data && response.data.success) {
+        const { success } = response.data
+        if (success) {
+          const { result } = response.data.response
+          setItems(result)
+        }
+        setPageState('ready')
       }
-      setPageState('ready')
+    } catch (error) {
+      console.log(error)
+      setPageState('ready')      
     }
-  }
+  }, [])
 
   useEffect(() => {
-    fetchRealms()
+    console.log(`effect is ${network}`)
+    fetchRealms(api_endpoint, searchStr)
   }, [api_endpoint])
 
   return (
     <div className="mt-4">
       <div>
         <Input
-          // clearable
-          // bordered
           color="default"
           placeholder="Search realm names here..."
-          // labelPlaceholder="Search realms and subrealms..."
           disabled={pageState === 'loading'}
-          // contentRight={<Loading size="xs" />}
           value={searchStr}
           onChange={e => setSearchStr(e.target.value)}
           onKeyUp={(e) => {
-            if ( e.key === 'Enter' )
-              fetchRealms()
+            if ( e.key === 'Enter' ) {
+              fetchRealms(api_endpoint, searchStr)
+            }
           }}
         />
       </div>

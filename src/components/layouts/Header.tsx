@@ -5,6 +5,8 @@ import { Logo } from "./Logo"
 import { useContext } from "react"
 import { NetworkContext } from "@/common/NetworkContextProvider"
 import { WalletConnect } from "@/components/WalletConnect"
+import { DollarIcon } from "@/components/icons/DollarIcon"
+import { RepairIcon } from "@/components/icons/RepairIcon"
 
 export const Header = () => {
 
@@ -44,16 +46,20 @@ export const Header = () => {
         </NavbarContent>
 
         <NavbarContent justify="end">
-          <WalletConnect />
           <Switch
-            defaultSelected
             size="lg"
             color="primary"
             isSelected={network === 'mainnet'}
-            onValueChange={isSelected => setNetwork(isSelected ? 'mainnet' : 'testnet')}
+            onValueChange={isSelected => {
+              setNetwork(isSelected ? 'mainnet' : 'testnet')
+              // console.log(network)
+            }}
+            startContent={<DollarIcon />}
+            endContent={<RepairIcon />}
           >
-            {network}
+            
           </Switch>
+          <WalletConnect />
         </NavbarContent>
 
       </Navbar>

@@ -17,7 +17,6 @@ export default function Check () {
     const response = await axios.get(`${api_endpoint}/blockchain.atomicals.get_realm_info?params=[\"${realmName}\",1]`)
     if (response.data && response.data.success) {
       const { result } = response.data.response
-      console.log(result)
       const { atomical_id, found_full_realm_name } = result
       setAtomicalId(atomical_id)
       setFullRealmName(found_full_realm_name)
@@ -33,7 +32,6 @@ export default function Check () {
         value={realmName}
         onChange={e => setRealmName(e.target.value)}
         onKeyUp={(e) => {
-          console.log(e.key, realmName)
           if ( e.key === 'Enter' && realmName !== '' )
             fetchSubrealms()
         }}

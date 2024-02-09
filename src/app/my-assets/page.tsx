@@ -22,7 +22,6 @@ export default function MyAssets () {
       const response = await axios.get(`https://ep.atomicals.xyz/proxy/blockchain.atomicals.get_realm_info?params=[\"${realmName}\",1]`)
       if (response.data && response.data.success) {
         const { result } = response.data.response
-        console.log(result)
         const { atomical_id, found_full_realm_name } = result
       }
     }
