@@ -49,7 +49,7 @@ export default function Explore () {
       <div>
         {
           items.map((elem: any) => (
-            <div className="flex flex-row justify-between mt-5">
+            <div key={elem.atomical_id} className="flex flex-row justify-between mt-5">
               <div>{elem.atomical_id}</div>
               <div>{elem.realm}</div>
             </div>
