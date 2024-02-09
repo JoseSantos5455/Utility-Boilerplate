@@ -1,7 +1,8 @@
+"use client"
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link } from "@nextui-org/react"
 
 import { Logo } from "./Logo"
-import { WalletConnect } from "@/components/WalletConnect"
+// import { WalletConnect } from "@/components/WalletConnect"
 
 export const Header = () => {
 
