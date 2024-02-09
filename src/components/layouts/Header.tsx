@@ -8,6 +8,10 @@ export const Header = () => {
 
   const menuItems = [
     {
+      text: "Explore",
+      href: "/explore"
+    },
+    {
       text: "Realm",
       href: "/realms"
     },

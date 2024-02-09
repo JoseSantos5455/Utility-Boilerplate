@@ -12,7 +12,7 @@ export const Providers = ({
   return (
     <NextUIProvider>
       <Header></Header>
-        <div className="text-center">
+        <div className="lg:max-w-screen-lg mx-auto">
           {children}
         </div>
       <Footer></Footer>
