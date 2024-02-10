@@ -25,7 +25,6 @@ declare global {
 
 export const WalletConnect = () => {
   const { walletData, setWalletData } = useContext(WalletContext);
-  const [isConnectOptionsVisible, setConnectOptionsVisible] = useState(false);
 
   const { network, setNetwork } = useContext(NetworkContext)
 
@@ -34,7 +33,6 @@ export const WalletConnect = () => {
     if (hasWizzExtension()) {
       const result: string[] = await window.atom.requestAccounts();
       if (result.length > 0) {
-        setConnectOptionsVisible(false);
         setWalletData({
           ...walletData,
           type: "atom",
@@ -48,7 +46,6 @@ export const WalletConnect = () => {
     if (hasUnisatExtension()) {
       const result: string[] = await window.unisat.requestAccounts();
       if (result.length > 0) {
-        setConnectOptionsVisible(false);
         setWalletData({
           ...walletData,
           type: "unisat",
@@ -88,10 +85,6 @@ export const WalletConnect = () => {
   };
   const hasUnisatExtension = () => {
     return typeof window !== 'undefined' && typeof window.unisat !== 'undefined';
-  };
-
-  const handleConnectButtonClick = () => {
-    setConnectOptionsVisible(!isConnectOptionsVisible);
   };
 
   const handleSwitchChange = (checked: any) => {
