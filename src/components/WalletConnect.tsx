@@ -32,7 +32,7 @@ export const WalletConnect = () => {
 
   const connectWizz = async () => {
     if (hasWizzExtension()) {
-      const result = await window.atom.requestAccounts();
+      const result: string[] = await window.atom.requestAccounts();
       if (result.length > 0) {
         setConnectOptionsVisible(false);
         setWalletData({
@@ -44,6 +44,14 @@ export const WalletConnect = () => {
       }
     }
   };
+
+  const getWizzAccounts = async () => {
+    if (typeof window !== 'undefined' && typeof window.atom !== 'undefined') {
+      const accounts: string[] = await window.atom.getAccounts()
+      return accounts
+    }
+    return []
+  }
 
   const disconnectWallet = () => {
     setWalletData({
