@@ -44,6 +44,21 @@ export const WalletConnect = () => {
       }
     }
   };
+  const connectUnisat = async () => {
+    if (hasUnisatExtension()) {
+      const result: string[] = await window.unisat.requestAccounts();
+      if (result.length > 0) {
+        setConnectOptionsVisible(false);
+        setWalletData({
+          ...walletData,
+          type: "unisat",
+          connected: true,
+          legacy_taproot_addr: result[0],
+        });
+      }
+    }
+  };
+
 
   const getWizzAccounts = async () => {
     if (typeof window !== 'undefined' && typeof window.atom !== 'undefined') {
@@ -52,6 +67,13 @@ export const WalletConnect = () => {
     }
     return []
   }
+  const getUnisatAccounts = async () => {
+    if (typeof window !== 'undefined' && typeof window.unisat !== 'undefined') {
+      const accounts: string[] = await window.unisat.getAccounts();
+      return accounts;
+    }
+    return [];
+  };
 
   const disconnectWallet = () => {
     setWalletData({
@@ -63,6 +85,9 @@ export const WalletConnect = () => {
 
   const hasWizzExtension = () => {
     return typeof window !== "undefined" && typeof window.atom !== "undefined";
+  };
+  const hasUnisatExtension = () => {
+    return typeof window !== 'undefined' && typeof window.unisat !== 'undefined';
   };
 
   const handleConnectButtonClick = () => {
@@ -109,18 +134,18 @@ export const WalletConnect = () => {
                     Connect Wizz Wallet
                   </Button>
                 ) : (
-                  <Link target="_blank" href="/">
+                  <Link target="_blank" href="https://wizzwallet.io/">
                     Please first install Wizz Wallet
                   </Link>
                 )}
               </MenubarItem>
               <MenubarItem>
                 {window.unisat ? (
-                  <Button color="primary" onClick={connectWizz}>
+                  <Button color="primary" onClick={connectUnisat}>
                     Connect Unisat Wallet
                   </Button>
                 ) : (
-                  <Link target="_blank" href="/">
+                  <Link target="_blank" href="https://unisat.io/download">
                     Please first install Unisat Wallet
                   </Link>
                 )}
