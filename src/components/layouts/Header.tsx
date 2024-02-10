@@ -1,15 +1,8 @@
-<<<<<<< Updated upstream
-import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button } from "@nextui-org/react"
 
-import { Logo } from "./Logo"
-import { WalletConnect } from "@/common/WalletConnect"
-
-import { useState } from "react"
 "use client"
 
 import { Logo } from "./Logo"
 import { useContext } from "react"
-import { WalletConnect } from "@/components/WalletConnect"
 import { DollarIcon } from "@/components/icons/DollarIcon"
 import { RepairIcon } from "@/components/icons/RepairIcon"
 import {
@@ -23,6 +16,7 @@ import {
 } from "@/components/ui/menubar"
 import { useRouter } from "next/navigation"
 import { Switch } from "../ui/switch"
+import { WalletConnect } from "../WalletConnect"
 
 
 
@@ -60,28 +54,11 @@ export const Header = () => {
                 </MenubarItem>
               ))
             }
-
           </MenubarContent>
         </MenubarMenu>
 
         <WalletConnect />
 
-        <NavbarContent justify="end">
-          <Switch
-            size="lg"
-            color="primary"
-            isSelected={network === 'mainnet'}
-            onValueChange={isSelected => {
-              setNetwork(isSelected ? 'mainnet' : 'testnet')
-              // console.log(network)
-            }}
-            startContent={<DollarIcon />}
-            endContent={<RepairIcon />}
-          >
-
-          </Switch>
-          <WalletConnect />
-        </NavbarContent>
       </Menubar>
 
     </>
