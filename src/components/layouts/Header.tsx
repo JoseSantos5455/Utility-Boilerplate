@@ -5,7 +5,6 @@ import { Logo } from "./Logo"
 import { WalletConnect } from "@/common/WalletConnect"
 
 import { useState } from "react"
-=======
 "use client"
 
 import { Logo } from "./Logo"
@@ -25,32 +24,26 @@ import {
 import { useRouter } from "next/navigation"
 import { Switch } from "../ui/switch"
 
->>>>>>> Stashed changes
 
 
-<<<<<<< Updated upstream
 export const Header = () => {
-=======
 
   const router = useRouter()
->>>>>>> Stashed changes
 
   const menuItems = [
     {
-      text: "Realms",
-      href: "/realms"
+      text: "Explore",
+      href: "/explore"
     },
     {
-      text: "Mine Subrealms",
-      href: "/mine-subrealm"
+      text: "Check",
+      href: "/check"
     },
     {
-      text: "Inscribe",
-      href: "/inscribe"
+      text: "My Assets",
+      href: "/my-assets"
     }
   ]
-
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
     <>
@@ -73,13 +66,23 @@ export const Header = () => {
 
         <WalletConnect />
 
-<<<<<<< Updated upstream
         <NavbarContent justify="end">
+          <Switch
+            size="lg"
+            color="primary"
+            isSelected={network === 'mainnet'}
+            onValueChange={isSelected => {
+              setNetwork(isSelected ? 'mainnet' : 'testnet')
+              // console.log(network)
+            }}
+            startContent={<DollarIcon />}
+            endContent={<RepairIcon />}
+          >
+
+          </Switch>
           <WalletConnect />
         </NavbarContent>
-=======
       </Menubar>
->>>>>>> Stashed changes
 
     </>
   )
