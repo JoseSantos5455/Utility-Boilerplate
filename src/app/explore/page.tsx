@@ -23,10 +23,10 @@ export default function Explore () {
           const { result } = response.data.response
           setItems(result)
         }
-        setPageState('ready')
       }
     } catch (error) {
       console.log(error)
+    } finally {
       setPageState('ready')      
     }
   }, [])

@@ -48,7 +48,7 @@ export const WalletConnect = () => {
       <Button color="primary" variant="bordered" onPress={() => setModalOpen(true)}>
         {
           walletData.connected ? (
-            <>{walletData.legacy_taproot_addr}</>
+            <>Profile</>
           ) : (
             <>Connect Wallet</>
           )
