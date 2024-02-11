@@ -2,21 +2,16 @@
 "use client"
 
 import { Logo } from "./Logo"
-import { useContext } from "react"
-import { DollarIcon } from "@/components/icons/DollarIcon"
-import { RepairIcon } from "@/components/icons/RepairIcon"
 import {
   Menubar,
   MenubarContent,
   MenubarItem,
   MenubarMenu,
-  MenubarSeparator,
-  MenubarShortcut,
   MenubarTrigger,
 } from "@/components/ui/menubar"
 import { useRouter } from "next/navigation"
-import { Switch } from "../ui/switch"
 import { WalletConnect } from "../WalletConnect"
+import { ModeToggle } from "../ui/ModeToggle"
 
 
 
@@ -36,7 +31,11 @@ export const Header = () => {
     {
       text: "My Assets",
       href: "/my-assets"
-    }
+    },
+    {
+      text: "Profile",
+      href: "/profile"
+    },
   ]
 
   return (
@@ -56,6 +55,8 @@ export const Header = () => {
             }
           </MenubarContent>
         </MenubarMenu>
+
+        <ModeToggle />
 
         <WalletConnect />
 

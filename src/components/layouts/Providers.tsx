@@ -16,9 +16,9 @@ export const Providers = ({
       <NetworkContextProvider>
         <WalletContextProvider>
           <Header></Header>
-            <div className="lg:max-w-screen-lg mx-auto">
-              {children}
-            </div>
+          <div className="lg:max-w-screen-lg mx-auto">
+            {children}
+          </div>
           <Footer></Footer>
         </WalletContextProvider>
       </NetworkContextProvider>

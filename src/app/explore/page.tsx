@@ -3,8 +3,7 @@ import { useContext, useEffect, useState, useCallback } from "react";
 import { NetworkContext } from "@/common/NetworkContextProvider";
 import axios from 'axios'
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function Explore() {
 
@@ -59,15 +58,15 @@ export default function Explore() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[100px]">Atomical ID</TableHead>
             <TableHead>Realm</TableHead>
+            <TableHead className="w-[100px]">Atomical ID</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {items.map((elem: any) => (
             <TableRow key={elem.atomical_id}>
-              <TableCell className="w-[100px]">{elem.atomical_id}</TableCell>
               <TableCell>{elem.realm}</TableCell>
+              <TableCell className="w-[100px]">{elem.atomical_id}</TableCell>
             </TableRow>
           ))}
         </TableBody>
