@@ -1,8 +1,20 @@
-"use client"
 import { useState, useContext } from "react";
 import { WalletContext } from "@/common/WalletContextProvider";
+import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarTrigger,
+} from "@/components/ui/menubar";
+import { Button } from "./ui/button";
+import Link from "next/link";
+import { DollarIcon } from "./icons/DollarIcon";
+import { RepairIcon } from "./icons/RepairIcon";
+import { Switch } from "./ui/switch";
+import { NetworkContext } from "@/common/NetworkContextProvider";
 
-import { Modal, ModalBody, ModalHeader, Button, ModalContent, Link } from "@nextui-org/react";
 
 declare global {
   interface Window {
@@ -12,28 +24,38 @@ declare global {
 }
 
 export const WalletConnect = () => {
+  const { walletData, setWalletData } = useContext(WalletContext);
 
-  const [isModalOpen, setModalOpen] = useState(false)
-  const { walletData, setWalletData } = useContext(WalletContext)
+  const { network, setNetwork } = useContext(NetworkContext)
+
 
   const connectWizz = async () => {
-    if ( hasWizzExtension() ) {
-      const result: string[] = await window.atom.requestAccounts()
+    if (hasWizzExtension()) {
+      const result: string[] = await window.atom.requestAccounts();
       if (result.length > 0) {
-        setModalOpen(false)
         setWalletData({
           ...walletData,
-          type: 'atom',
+          type: "atom",
           connected: true,
-          legacy_taproot_addr: result[0]
-        })
+          legacy_taproot_addr: result[0],
+        });
       }
     }
-  }
+  };
+  const connectUnisat = async () => {
+    if (hasUnisatExtension()) {
+      const result: string[] = await window.unisat.requestAccounts();
+      if (result.length > 0) {
+        setWalletData({
+          ...walletData,
+          type: "unisat",
+          connected: true,
+          legacy_taproot_addr: result[0],
+        });
+      }
+    }
+  };
 
-  const hasWizzExtension = () => {
-    return (typeof window !== 'undefined' && typeof window.atom !== 'undefined')
-  }
 
   const getWizzAccounts = async () => {
     if (typeof window !== 'undefined' && typeof window.atom !== 'undefined') {
@@ -42,52 +64,104 @@ export const WalletConnect = () => {
     }
     return []
   }
+  const getUnisatAccounts = async () => {
+    if (typeof window !== 'undefined' && typeof window.unisat !== 'undefined') {
+      const accounts: string[] = await window.unisat.getAccounts();
+      return accounts;
+    }
+    return [];
+  };
+
+  const disconnectWallet = () => {
+    setWalletData({
+      type: null,
+      connected: false,
+      legacy_taproot_addr: null,
+    });
+  };
+
+  const hasWizzExtension = () => {
+    return typeof window !== "undefined" && typeof window.atom !== "undefined";
+  };
+  const hasUnisatExtension = () => {
+    return typeof window !== 'undefined' && typeof window.unisat !== 'undefined';
+  };
+
+  const handleSwitchChange = (checked: any) => {
+    setNetwork(checked ? 'mainnet' : 'testnet');
+    //console.log(network);
+  };
 
   return (
-    <>
-      <Button color="primary" variant="bordered" onPress={() => setModalOpen(true)}>
-        {
-          walletData.connected ? (
-            <>{walletData.legacy_taproot_addr}</>
+    <Menubar>
+      <MenubarMenu>
+        <MenubarTrigger>
+          {walletData.connected ? (
+            <>
+              {walletData.legacy_taproot_addr.slice(0, 4)}...{walletData.legacy_taproot_addr.slice(-4)}
+            </>
           ) : (
             <>Connect Wallet</>
-          )
-        }
-      </Button>
+          )}
+        </MenubarTrigger>
+        <MenubarContent className="flex items-center flex-col gap-1">
 
-      <Modal isOpen={isModalOpen} onOpenChange={() => setModalOpen(false)}>
-        <ModalContent>
-          {(onClose) => (
+
+          {walletData.connected ? (
             <>
-              <ModalHeader className="flex flex-col gap-1">Connect Wallet</ModalHeader>
-              <ModalBody>
-                <div>
-                  {
-                    (window.atom ? (
-                      <Button color="primary" variant="bordered" onPress={connectWizz}>
-                        Connect Wizz Wallet
-                      </Button>
-                    ) : (
-                      <Link target="_blank" href="/">Please first install Wizz Wallet</Link>
-                    ))
-                  }
-                </div>
-                <div>
-                  {
-                    (window.unisat ? (
-                      <Button color="primary" variant="bordered" onPress={connectWizz}>
-                        Connect Unisat Wallet
-                      </Button>
-                    ) : (
-                      <Link target="_blank" href="/">Please first install Unisat Wallet</Link>
-                    ))
-                  }
-                </div>
-              </ModalBody>
+              <Link target="_blank" href={"https://mempool.space/address/" + walletData.legacy_taproot_addr}>
+                History
+              </Link>
+              <MenubarSeparator />
+              <Button onClick={disconnectWallet}>
+                Disconnect
+              </Button>
+
+            </>
+          ) : (
+
+            <>
+              <MenubarItem>
+                {window.atom ? (
+                  <Button color="primary" onClick={connectWizz}>
+                    Connect Wizz Wallet
+                  </Button>
+                ) : (
+                  <Link target="_blank" href="https://wizzwallet.io/">
+                    Please first install Wizz Wallet
+                  </Link>
+                )}
+              </MenubarItem>
+              <MenubarItem>
+                {window.unisat ? (
+                  <Button color="primary" onClick={connectUnisat}>
+                    Connect Unisat Wallet
+                  </Button>
+                ) : (
+                  <Link target="_blank" href="https://unisat.io/download">
+                    Please first install Unisat Wallet
+                  </Link>
+                )}
+              </MenubarItem>
             </>
           )}
-        </ModalContent>
-      </Modal>
-    </>
-  )
-}
+
+          <MenubarSeparator />
+          <div className="w-full flex content-center items-center justify-between">
+            {network === 'mainnet' ?
+              <DollarIcon /> : <RepairIcon />
+            }
+            <Switch
+              checked={network === 'mainnet'}
+              onCheckedChange={handleSwitchChange}
+            >
+            </Switch>
+
+          </div>
+
+        </MenubarContent>
+      </MenubarMenu>
+
+    </Menubar>
+  );
+};

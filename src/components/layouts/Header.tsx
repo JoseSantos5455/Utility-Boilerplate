@@ -1,16 +1,23 @@
+
 "use client"
-import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Switch } from "@nextui-org/react"
 
 import { Logo } from "./Logo"
-import { useContext } from "react"
-import { NetworkContext } from "@/common/NetworkContextProvider"
-import { WalletConnect } from "@/components/WalletConnect"
-import { DollarIcon } from "@/components/icons/DollarIcon"
-import { RepairIcon } from "@/components/icons/RepairIcon"
+import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarTrigger,
+} from "@/components/ui/menubar"
+import { useRouter } from "next/navigation"
+import { WalletConnect } from "../WalletConnect"
+import { ModeToggle } from "../ui/ModeToggle"
+
+
 
 export const Header = () => {
 
-  const { network, setNetwork } = useContext(NetworkContext)
+  const router = useRouter()
 
   const menuItems = [
     {
@@ -24,45 +31,37 @@ export const Header = () => {
     {
       text: "My Assets",
       href: "/my-assets"
-    }
+    },
+    {
+      text: "Profile",
+      href: "/profile"
+    },
   ]
 
   return (
     <>
-      <Navbar>
-        
-        <NavbarBrand>
-          <Logo />
-        </NavbarBrand>
+      <Menubar className="flex justify-between p-6">
+        <Logo />
 
-        <NavbarContent className="hidden sm:flex gap-4" justify="center">
-          {
-            menuItems.map((item: any) => (
-              <NavbarItem key={item.href}>
-                <Link color="foreground" href={item.href}>{item.text}</Link>
-              </NavbarItem>
-            ))
-          }
-        </NavbarContent>
+        <MenubarMenu >
+          <MenubarTrigger>Menu</MenubarTrigger>
+          <MenubarContent className="flex flex-col gap-2">
+            {
+              menuItems.map((item: any) => (
+                <MenubarItem key={item.href} onClick={() => router.push(item.href)}>
+                  {item.text}
+                </MenubarItem>
+              ))
+            }
+          </MenubarContent>
+        </MenubarMenu>
 
-        <NavbarContent justify="end">
-          <Switch
-            size="lg"
-            color="primary"
-            isSelected={network === 'mainnet'}
-            onValueChange={isSelected => {
-              setNetwork(isSelected ? 'mainnet' : 'testnet')
-              // console.log(network)
-            }}
-            startContent={<DollarIcon />}
-            endContent={<RepairIcon />}
-          >
-            
-          </Switch>
-          <WalletConnect />
-        </NavbarContent>
+        <ModeToggle />
 
-      </Navbar>
+        <WalletConnect />
+
+      </Menubar>
+
     </>
   )
 }
