@@ -26,9 +26,9 @@ export default function NetworkContextProvider({
   const [api_endpoint, setAPIEndpoint] = useState(process.env.NEXT_PUBLIC_CURRENT_PROXY || '')
 
   useEffect(() => {
-    if ( network === 'mainnet' )
+    if (network === 'mainnet')
       setAPIEndpoint(process.env.NEXT_PUBLIC_CURRENT_PROXY || '')
-    else if ( network === 'testnet' )
+    else if (network === 'testnet')
       setAPIEndpoint(process.env.NEXT_PUBLIC_CURRENT_PROXY_TESTNET || '')
   }, [network])
 
