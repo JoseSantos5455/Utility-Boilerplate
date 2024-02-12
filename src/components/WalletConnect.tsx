@@ -122,7 +122,7 @@ export const WalletConnect = () => {
 
             <>
               <MenubarItem>
-                {window.atom ? (
+                {typeof window !== 'undefined' && window.atom ? (
                   <Button color="primary" onClick={connectWizz}>
                     Connect Wizz Wallet
                   </Button>
@@ -133,7 +133,7 @@ export const WalletConnect = () => {
                 )}
               </MenubarItem>
               <MenubarItem>
-                {window.unisat ? (
+                {typeof window !== 'undefined' && window.unisat ? (
                   <Button color="primary" onClick={connectUnisat}>
                     Connect Unisat Wallet
                   </Button>

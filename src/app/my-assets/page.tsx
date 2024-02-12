@@ -2,7 +2,7 @@
 import { useContext, useEffect, useState } from "react";
 import axios from 'axios'
 import { WalletContext } from "@/common/WalletContextProvider";
-import { Modal, ModalBody, ModalHeader, Button, ModalContent, Link, ModalFooter } from "@nextui-org/react";
+// import { Modal, ModalBody, ModalHeader, Button, ModalContent, Link, ModalFooter } from "@nextui-org/react";
 
 export default function MyAssets () {
 
@@ -45,7 +45,7 @@ export default function MyAssets () {
               {walletData.legacy_taproot_addr}
             </div>
 
-            <div className="mt-6">
+            {/* <div className="mt-6">
               <Button onClick={() => setModalOpen(true)}>
 
               </Button>
@@ -71,7 +71,7 @@ export default function MyAssets () {
                   )}
                 </ModalContent>
               </Modal>
-            </div>
+            </div> */}
           </div>
         ) : (
           <div>

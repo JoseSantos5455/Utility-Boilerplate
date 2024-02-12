@@ -4,7 +4,6 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 import { Providers } from "../components/layouts/Providers";
-import { ThemeProvider } from "@/components/layouts/theme-provider";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -19,17 +18,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Providers>
-            {children}
-          </Providers>
-        </ThemeProvider>
-
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

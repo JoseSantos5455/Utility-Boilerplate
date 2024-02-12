@@ -21,7 +21,7 @@ const CustomSwitch = React.forwardRef<
                 "pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0"
             )}
         >
-            {props['data-state'] === 'checked' ? <DollarIcon /> : <RepairIcon />}
+            {props.datatype === 'checked' ? <DollarIcon /> : <RepairIcon />}
         </SwitchPrimitives.Thumb>
     </SwitchPrimitives.Root>
 ));
