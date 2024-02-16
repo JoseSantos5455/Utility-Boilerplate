@@ -4,6 +4,8 @@ import axios from 'axios'
 import { WalletContext } from "@/common/WalletContextProvider";
 import { NetworkContext } from "@/common/NetworkContextProvider";
 
+import { createKeyPair } from "../atomical-lib/utils/create-key-pair";
+
 export default function MintSubrealm () {
 
   const tlr = 'dntest'
@@ -46,9 +48,10 @@ export default function MintSubrealm () {
     //   alert(msg)
     //   return
     // }
+  }
 
-
-
+  const testPrikey = () => {
+    createKeyPair()
   }
 
   return (
@@ -62,6 +65,12 @@ export default function MintSubrealm () {
       </div>
       <div>
         <button onClick={() => mintSubrealm()}>MINT SUBREALM</button>
+      </div>
+      <div>
+        
+      </div>
+      <div>
+        <button onClick={() => testPrikey()}>Test Prikey</button>
       </div>
     </div>
   )

@@ -3,6 +3,7 @@ import { Header } from "@/components/layouts/Header";
 import { Footer } from "@/components/layouts/Footer";
 import WalletContextProvider from "@/common/WalletContextProvider";
 import NetworkContextProvider from "@/common/NetworkContextProvider";
+import AppContextProvider from "@/common/AppContextProvider"
 import { ThemeProvider } from "@/components/layouts/theme-provider";
 
 export const Providers = ({
@@ -12,21 +13,23 @@ export const Providers = ({
 }>) => {
 
   return (
-    <NetworkContextProvider>
-      <WalletContextProvider>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Header></Header>
-          <div className="lg:max-w-screen-lg mx-auto">
-            {children}
-          </div>
-          <Footer></Footer>
-        </ThemeProvider>
-      </WalletContextProvider>
-    </NetworkContextProvider>
+    <AppContextProvider>
+      <NetworkContextProvider>
+        <WalletContextProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Header></Header>
+            <div className="lg:max-w-screen-lg mx-auto">
+              {children}
+            </div>
+            <Footer></Footer>
+          </ThemeProvider>
+        </WalletContextProvider>
+      </NetworkContextProvider>
+    </AppContextProvider>
   );
 }

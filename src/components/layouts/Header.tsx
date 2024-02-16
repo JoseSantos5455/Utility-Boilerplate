@@ -29,6 +29,10 @@ export const Header = () => {
       href: "/check"
     },
     {
+      text: "Mint Subrealm",
+      href: "/mint-subrealm"
+    },
+    {
       text: "My Assets",
       href: "/my-assets"
     },
