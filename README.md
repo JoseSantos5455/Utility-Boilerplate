@@ -55,8 +55,11 @@ resp{
   success
 }
 
+disco primary address
+bc1pdqgqp06p7lauaalf4nfzk2zamxafldpvvanesmyymgys0mwpd5zsu36kcy
 
-
+disco funding address
+bc1pmmg3lhkg59j793udfsskl6detqe4hlasmwcjeskgmyq40d6v6taq2ks5lk
 
 
 get my atomicals
@@ -65,3 +68,14 @@ POST
 {
   params: [scripthash, true]
 }
+
+
+
+bc1pumtudnmyl7qa773hyxf572282l8uleqcj933s06fx6pdvjm92uesyus6d5
+bc1pc3c0q4ufllcfyc385ypfnnpjj03d3sw0nk5suqulgxyhzalhrurswzcvvj
+bc1pcg9svy0h42pctpr2p9vnx4axtj39phzmnwj78takmra3fjzyc0zq2lltvz
+
+
+get fee
+
+https://mempool.space/api/v1/fees/recommended
