@@ -57,7 +57,7 @@ import {
     calculateFundsRequired,
     getAndCheckAtomicalInfo,
     prepareCommitRevealConfig,
-    prepareFilesDataAsObject,
+    // prepareFilesDataAsObject,
 } from "../commands/command-helpers";
 import { getFundingUtxo } from "./select-funding-utxo";
 import { sleeper } from "./utils";
@@ -365,16 +365,17 @@ export class AtomicalOperationBuilder {
         this.requestParentId = null;
     }
 
-    /**
-     * For each array element do:
-     *
-     * - determine if it's a file, or a file with an alias, or a scalar/json object type
-     *
-     * @param fieldTypeHints The type hint string array
-     */
-    static async getDataObjectFromStringTypeHints(fieldTypeHints: string[]) {
-        return prepareFilesDataAsObject(fieldTypeHints);
-    }
+    // teporary
+    // /**
+    //  * For each array element do:
+    //  *
+    //  * - determine if it's a file, or a file with an alias, or a scalar/json object type
+    //  *
+    //  * @param fieldTypeHints The type hint string array
+    //  */
+    // static async getDataObjectFromStringTypeHints(fieldTypeHints: string[]) {
+    //     return prepareFilesDataAsObject(fieldTypeHints);
+    // }
 
     setData(data: any, log = false) {
         if (!data) {
@@ -522,27 +523,28 @@ export class AtomicalOperationBuilder {
         let scriptP2TR: any = null;
         let hashLockP2TR: any = null;
 
-        if (this.options.meta) {
-            this.setMeta(
-                await AtomicalOperationBuilder.getDataObjectFromStringTypeHints(
-                    this.options.meta
-                )
-            );
-        }
-        if (this.options.init) {
-            this.setInit(
-                await AtomicalOperationBuilder.getDataObjectFromStringTypeHints(
-                    this.options.init
-                )
-            );
-        }
-        if (this.options.ctx) {
-            this.setCtx(
-                await AtomicalOperationBuilder.getDataObjectFromStringTypeHints(
-                    this.options.ctx
-                )
-            );
-        }
+        // temporary
+        // if (this.options.meta) {
+        //     this.setMeta(
+        //         await AtomicalOperationBuilder.getDataObjectFromStringTypeHints(
+        //             this.options.meta
+        //         )
+        //     );
+        // }
+        // if (this.options.init) {
+        //     this.setInit(
+        //         await AtomicalOperationBuilder.getDataObjectFromStringTypeHints(
+        //             this.options.init
+        //         )
+        //     );
+        // }
+        // if (this.options.ctx) {
+        //     this.setCtx(
+        //         await AtomicalOperationBuilder.getDataObjectFromStringTypeHints(
+        //             this.options.ctx
+        //         )
+        //     );
+        // }
 
         let copiedData: any = Object.assign({}, this.userDefinedData); //
 

@@ -9,6 +9,7 @@ bitcoin.initEccLib(ecc);
 const ECPair = ECPairFactory(ecc);
 import BIP32Factory from 'bip32';
 import { NETWORK } from "../commands/command-helpers"
+
 const bip32 = BIP32Factory(ecc);
 
 export const toXOnly = (publicKey: any) => {
@@ -32,6 +33,7 @@ export const createKeyPair = async (phrase: string = '', path = `m/44'/0'/0'/0/0
     }
     const seed = await bip39.mnemonicToSeed(phrase);
     const rootKey = bip32.fromSeed(seed);
+
     const childNodePrimary = rootKey.derivePath(path);
     // const p2pkh = bitcoin.payments.p2pkh({ pubkey: childNodePrimary.publicKey });
     const childNodeXOnlyPubkeyPrimary = toXOnly(childNodePrimary.publicKey);
@@ -61,6 +63,15 @@ export const createKeyPair = async (phrase: string = '', path = `m/44'/0'/0'/0/0
     if (childNodePrimary.publicKey.toString('hex') !== keypair.publicKey.toString('hex')) {
         throw 'createKeyPair error child node not match sanity check'
     }
+
+    console.log(p2trPrimary.address)
+    console.log(childNodePrimary.toWIF())
+    console.log(childNodePrimary.privateKey?.toString('hex'))
+    console.log(childNodePrimary.publicKey?.toString('hex'))
+    console.log(childNodeXOnlyPubkeyPrimary.toString('hex'))
+    // console.log(rootKey.privateKey?.toString())
+    // console.log(rootKey.privateKey?.toString())
+
     return {
         address: p2trPrimary.address,
         publicKey: childNodePrimary.publicKey.toString('hex'),

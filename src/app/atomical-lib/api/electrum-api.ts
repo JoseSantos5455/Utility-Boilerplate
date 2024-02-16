@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
-/* eslint-disable prettier/prettier */
 import axios from 'axios';
 import { UTXO } from "../types/UTXO.interface";
 import { detectAddressTypeToScripthash } from "../utils/address-helpers";

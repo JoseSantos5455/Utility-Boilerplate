@@ -5,7 +5,7 @@
 import { AtomicalFileData } from "../interfaces/atomical-file-data";
 import { basename } from "path";
 import * as mime from 'mime-types';
-import { chunkBuffer, fileReader, jsonFileReader } from "../utils/file-utils";
+import { chunkBuffer } from "../utils/file-utils";
 const cbor = require('borc')
 import {
     networks,
@@ -178,16 +178,25 @@ export const prepareCommitRevealConfig = (opType: 'nft' | 'ft' | 'dft' | 'dmt' |
     }
 }
 
-export const readAsAtomicalFileData = async (file: string, alternateName?: string): Promise<AtomicalFileData> => {
-    let expectedName = file;
-    const rawbytes: any = await fileReader(file);
-    let fileMintData: AtomicalFileData = {
-        name: alternateName ? alternateName : expectedName,
-        contentType: mime.contentType(basename(file)) || 'application/octet-stream',
-        data: Buffer.from(rawbytes, 'utf8')
-    }
-    return fileMintData;
-}
+/**
+ * temporary
+ * @param file 
+ * @param alternateName 
+ * @returns 
+ */
+// export const readAsAtomicalFileData = async (file: string, alternateName?: string): Promise<AtomicalFileData> => {
+//     let expectedName = file;
+//     const rawbytes: any = await fileReader(file);
+//     let fileMintData: AtomicalFileData = {
+//         name: alternateName ? alternateName : expectedName,
+//         contentType: mime.contentType(basename(file)) || 'application/octet-stream',
+//         data: Buffer.from(rawbytes, 'utf8')
+//     }
+//     return fileMintData;
+// }
+
+
+
 /**
  * 
  * Prepare file data from a file on disk, with an optional renaming of the file
@@ -207,176 +216,176 @@ export const readAsAtomicalFileData = async (file: string, alternateName?: strin
  * @param files Key value array of files and names OR the field name and field data 
  * @returns 
  */
-export const prepareFilesData = async (fields: string[]) => {
-    const filesData: AtomicalFileData[] = [];
-    for (const entry of fields) {
-        if (entry.indexOf(',') === -1 && entry.indexOf('=') === -1) {
-            filesData.push(await readAsAtomicalFileData(entry));
-        } else if (entry.indexOf(',') !== -1) {
-            const entrySplit = entry.split(',');
-            const alternateName = entrySplit[0]
-            filesData.push(await readAsAtomicalFileData(entrySplit[1], alternateName));
-        } else if (entry.indexOf('=') !== -1) {
-            const fieldName = entry.substring(0, entry.indexOf('='));
-            const fieldValue = entry.substring(entry.indexOf('=') + 1);
-            const parsedJson = JSON.parse(fieldValue);
-            const fieldData: AtomicalFileData = {
-                name: fieldName,
-                contentType: 'object',
-                data: parsedJson
-            }
-            filesData.push(fieldData);
-        } else {
-            throw new Error('Invalid field(s) specifications. Aborting...')
-        }
-    }
-    return filesData;
-}
+// export const prepareFilesData = async (fields: string[]) => {
+//     const filesData: AtomicalFileData[] = [];
+//     for (const entry of fields) {
+//         if (entry.indexOf(',') === -1 && entry.indexOf('=') === -1) {
+//             filesData.push(await readAsAtomicalFileData(entry));
+//         } else if (entry.indexOf(',') !== -1) {
+//             const entrySplit = entry.split(',');
+//             const alternateName = entrySplit[0]
+//             filesData.push(await readAsAtomicalFileData(entrySplit[1], alternateName));
+//         } else if (entry.indexOf('=') !== -1) {
+//             const fieldName = entry.substring(0, entry.indexOf('='));
+//             const fieldValue = entry.substring(entry.indexOf('=') + 1);
+//             const parsedJson = JSON.parse(fieldValue);
+//             const fieldData: AtomicalFileData = {
+//                 name: fieldName,
+//                 contentType: 'object',
+//                 data: parsedJson
+//             }
+//             filesData.push(fieldData);
+//         } else {
+//             throw new Error('Invalid field(s) specifications. Aborting...')
+//         }
+//     }
+//     return filesData;
+// }
 
-export const readFileAsCompleteDataObject = async (filePath: any, givenFileName: any) => {
-    const fileContents: any = await fileReader(filePath);
-    return {
-        [givenFileName]: fileContents
-    };
-}
+// export const readFileAsCompleteDataObject = async (filePath: any, givenFileName: any) => {
+//     const fileContents: any = await fileReader(filePath);
+//     return {
+//         [givenFileName]: fileContents
+//     };
+// }
 
-export const prepareFilesDataAsObject = async (fields: string[], disableAutoncode = false) => {
-    let fieldDataObject: any = {};
-    for (const entry of fields) {
-        if (entry.indexOf(',') === -1 && entry.indexOf('=') === -1) {
-            let filename = entry;
-            if (filename.charAt(0) === '@') {
-                if (!filename.endsWith('.json')) {
-                    throw new Error('Use of @ for direct embeds must only be used with .json file types');
-                }
-                filename = entry.substring(1);
-                const jsonFileContents: any = await jsonFileReader(filename);
-                fieldDataObject = Object.assign({}, fieldDataObject, {
-                    ...jsonFileContents
-                });
-            } else {
-                const fileInfo = await readAsAtomicalFileData(filename);
-                fieldDataObject[basename(fileInfo.name)] = fileInfo.data
-            }
-        } else if (entry.indexOf(',') !== -1 && entry.indexOf('=') === -1) {
-            const entrySplit = entry.split(',');
-            const filePath = entrySplit[1];
-            const alternateName = entrySplit[0]
-            const isInlineJson = filePath.endsWith('.json') ? true : false;
-            if (isInlineJson) {
-                const jsonFileContents = await jsonFileReader(filePath);
-                fieldDataObject[alternateName] = jsonFileContents;
-            } else {
-                const fileInfo = await readAsAtomicalFileData(entrySplit[1], alternateName);
-                fieldDataObject[(fileInfo.name)] = {
-                    '$ct': fileInfo.contentType,
-                    '$b': fileInfo.data
-                }
-            }
-        } else if (entry.indexOf('=') !== -1) {
-            const fieldName = entry.substring(0, entry.indexOf('='));
-            const fieldValue = entry.substring(entry.indexOf('=') + 1);
-            try {
-                const parsedJson = JSON.parse(fieldValue);
-                fieldDataObject[fieldName] = parsedJson;
-            } catch (err) {
-                if (typeof fieldValue === 'string') {
-                    try {
-                        const num = Number(fieldValue);
-                        if (!isNaN(num)) {
-                            fieldDataObject[fieldName] = Number(fieldValue)
-                        } else {
-                            fieldDataObject[fieldName] = fieldValue;
-                        }
+// export const prepareFilesDataAsObject = async (fields: string[], disableAutoncode = false) => {
+//     let fieldDataObject: any = {};
+//     for (const entry of fields) {
+//         if (entry.indexOf(',') === -1 && entry.indexOf('=') === -1) {
+//             let filename = entry;
+//             if (filename.charAt(0) === '@') {
+//                 if (!filename.endsWith('.json')) {
+//                     throw new Error('Use of @ for direct embeds must only be used with .json file types');
+//                 }
+//                 filename = entry.substring(1);
+//                 const jsonFileContents: any = await jsonFileReader(filename);
+//                 fieldDataObject = Object.assign({}, fieldDataObject, {
+//                     ...jsonFileContents
+//                 });
+//             } else {
+//                 const fileInfo = await readAsAtomicalFileData(filename);
+//                 fieldDataObject[basename(fileInfo.name)] = fileInfo.data
+//             }
+//         } else if (entry.indexOf(',') !== -1 && entry.indexOf('=') === -1) {
+//             const entrySplit = entry.split(',');
+//             const filePath = entrySplit[1];
+//             const alternateName = entrySplit[0]
+//             const isInlineJson = filePath.endsWith('.json') ? true : false;
+//             if (isInlineJson) {
+//                 const jsonFileContents = await jsonFileReader(filePath);
+//                 fieldDataObject[alternateName] = jsonFileContents;
+//             } else {
+//                 const fileInfo = await readAsAtomicalFileData(entrySplit[1], alternateName);
+//                 fieldDataObject[(fileInfo.name)] = {
+//                     '$ct': fileInfo.contentType,
+//                     '$b': fileInfo.data
+//                 }
+//             }
+//         } else if (entry.indexOf('=') !== -1) {
+//             const fieldName = entry.substring(0, entry.indexOf('='));
+//             const fieldValue = entry.substring(entry.indexOf('=') + 1);
+//             try {
+//                 const parsedJson = JSON.parse(fieldValue);
+//                 fieldDataObject[fieldName] = parsedJson;
+//             } catch (err) {
+//                 if (typeof fieldValue === 'string') {
+//                     try {
+//                         const num = Number(fieldValue);
+//                         if (!isNaN(num)) {
+//                             fieldDataObject[fieldName] = Number(fieldValue)
+//                         } else {
+//                             fieldDataObject[fieldName] = fieldValue;
+//                         }
 
-                    } catch (ex) {
-                        fieldDataObject[fieldName] = fieldValue
-                    }
-                }
-            }
+//                     } catch (ex) {
+//                         fieldDataObject[fieldName] = fieldValue
+//                     }
+//                 }
+//             }
 
-        } else {
-            throw new Error('Invalid field(s) specifications. Aborting...')
-        }
-    }
-    return fieldDataObject;
-}
+//         } else {
+//             throw new Error('Invalid field(s) specifications. Aborting...')
+//         }
+//     }
+//     return fieldDataObject;
+// }
 
-export const readJsonFileAsCompleteDataObjectEncodeAtomicalIds = async (jsonFile: any, autoEncode = false, autoEncodePattern?: string) => {
-    if (!jsonFile.endsWith('.json')) {
-        throw new Error('Filename must end in json')
-    }
-    const jsonFileContents: any = await jsonFileReader(jsonFile);
-    if (autoEncode) {
-        const updatedObject = {};
-        encodeIds(jsonFileContents, updatedObject, encodeAtomicalIdToBuffer, encodeHashToBuffer, autoEncodePattern);
-        return updatedObject;
-    }
-    return jsonFileContents;
-}
+// export const readJsonFileAsCompleteDataObjectEncodeAtomicalIds = async (jsonFile: any, autoEncode = false, autoEncodePattern?: string) => {
+//     if (!jsonFile.endsWith('.json')) {
+//         throw new Error('Filename must end in json')
+//     }
+//     const jsonFileContents: any = await jsonFileReader(jsonFile);
+//     if (autoEncode) {
+//         const updatedObject = {};
+//         encodeIds(jsonFileContents, updatedObject, encodeAtomicalIdToBuffer, encodeHashToBuffer, autoEncodePattern);
+//         return updatedObject;
+//     }
+//     return jsonFileContents;
+// }
 
 
-export const readJsonFileAsCompleteDataObjectEncodeHash = async (jsonFile: any, autoEncode = false, autoEncodePattern?: string) => {
-    if (!jsonFile.endsWith('.json')) {
-        throw new Error('Filename must end in json')
-    }
-    const jsonFileContents: any = await jsonFileReader(jsonFile);
-    if (autoEncode) {
-        const updatedObject = {};
-        encodeIds(jsonFileContents, updatedObject, encodeAtomicalIdToBuffer, encodeHashToBuffer, autoEncodePattern);
-        return updatedObject;
-    }
-    return jsonFileContents;
-}
+// export const readJsonFileAsCompleteDataObjectEncodeHash = async (jsonFile: any, autoEncode = false, autoEncodePattern?: string) => {
+//     if (!jsonFile.endsWith('.json')) {
+//         throw new Error('Filename must end in json')
+//     }
+//     const jsonFileContents: any = await jsonFileReader(jsonFile);
+//     if (autoEncode) {
+//         const updatedObject = {};
+//         encodeIds(jsonFileContents, updatedObject, encodeAtomicalIdToBuffer, encodeHashToBuffer, autoEncodePattern);
+//         return updatedObject;
+//     }
+//     return jsonFileContents;
+// }
 
-export const prepareFilesDataBackup = async (files: string[], names: string[]) => {
-    let fileCount = 0;
-    const nameMap: any = {
-    };
+// export const prepareFilesDataBackup = async (files: string[], names: string[]) => {
+//     let fileCount = 0;
+//     const nameMap: any = {
+//     };
 
-    const filesData: AtomicalFileData[] = [];
-    for (const file of files) {
-        let expectedName = file;
-        let mimeTypeHint;
-        if (names.length) {
-            if (names.length !== files.length) {
-                throw 'Error names argument length must match the number of files provided';
-            }
-            const splitted = names[fileCount].split(',');
-            expectedName = splitted[0];
-            mimeTypeHint = splitted[1] && splitted[1] === 'object' ? 'object' : null;
-        }
-        if (nameMap[expectedName]) {
-            throw `Error invalid name ${expectedName} for --names. Check there are no duplicates and that '_' is also not used`;
-        }
-        nameMap[expectedName] = true;
-        const fileIndex = fileCount + 1;
-        const rawbytes: any = await fileReader(file);
-        let fileMintData: AtomicalFileData = {
-            name: expectedName,
-            contentType: mime.contentType(file) || 'application/octet-stream',
-            data: Buffer.from(rawbytes, 'utf8')
-        };
-        if (mimeTypeHint === 'object') {
-            const rawbytes: any = await fileReader(file);
-            const parsedJson = JSON.parse(rawbytes);
-            fileMintData = {
-                name: expectedName,
-                contentType: 'object',
-                data: parsedJson
-            }
-        }
-        filesData.push(fileMintData);
-        console.log(`File #${fileIndex} name locally`, file);
-        console.log(`File #${fileIndex} field name:`, expectedName);
-        console.log(`File #${fileIndex} size:`, rawbytes.length);
-        console.log(`File #${fileIndex} content type:`, fileMintData.contentType);
-        console.log('-------')
-        fileCount++;
-    }
-    console.log("Total number of files to be added in transaction:", files.length);
-    return filesData;
-}
+//     const filesData: AtomicalFileData[] = [];
+//     for (const file of files) {
+//         let expectedName = file;
+//         let mimeTypeHint;
+//         if (names.length) {
+//             if (names.length !== files.length) {
+//                 throw 'Error names argument length must match the number of files provided';
+//             }
+//             const splitted = names[fileCount].split(',');
+//             expectedName = splitted[0];
+//             mimeTypeHint = splitted[1] && splitted[1] === 'object' ? 'object' : null;
+//         }
+//         if (nameMap[expectedName]) {
+//             throw `Error invalid name ${expectedName} for --names. Check there are no duplicates and that '_' is also not used`;
+//         }
+//         nameMap[expectedName] = true;
+//         const fileIndex = fileCount + 1;
+//         const rawbytes: any = await fileReader(file);
+//         let fileMintData: AtomicalFileData = {
+//             name: expectedName,
+//             contentType: mime.contentType(file) || 'application/octet-stream',
+//             data: Buffer.from(rawbytes, 'utf8')
+//         };
+//         if (mimeTypeHint === 'object') {
+//             const rawbytes: any = await fileReader(file);
+//             const parsedJson = JSON.parse(rawbytes);
+//             fileMintData = {
+//                 name: expectedName,
+//                 contentType: 'object',
+//                 data: parsedJson
+//             }
+//         }
+//         filesData.push(fileMintData);
+//         console.log(`File #${fileIndex} name locally`, file);
+//         console.log(`File #${fileIndex} field name:`, expectedName);
+//         console.log(`File #${fileIndex} size:`, rawbytes.length);
+//         console.log(`File #${fileIndex} content type:`, fileMintData.contentType);
+//         console.log('-------')
+//         fileCount++;
+//     }
+//     console.log("Total number of files to be added in transaction:", files.length);
+//     return filesData;
+// }
 
 export const prepareObjectfield = async (filesData: AtomicalFileData[], objectToAdd: any) => {
 
