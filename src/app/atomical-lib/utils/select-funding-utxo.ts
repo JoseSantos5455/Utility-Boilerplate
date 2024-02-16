@@ -1,7 +1,8 @@
 import { type ElectrumApiInterface } from "../api/electrum-api.interface";
 import { type UTXO } from "../types/UTXO.interface";
 import * as bitcoin from 'bitcoinjs-lib';
-import * as ecc from 'tiny-secp256k1';
+import * as ecc from '@bitcoinerlab/secp256k1';
+// import * as ecc from 'tiny-secp256k1';
 // import * as qrcode from 'qrcode-terminal';
 bitcoin.initEccLib(ecc);
 

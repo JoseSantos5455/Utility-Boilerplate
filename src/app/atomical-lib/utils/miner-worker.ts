@@ -10,7 +10,8 @@ import { BitworkInfo, hasValidBitwork } from "./atomical-format-helpers";
 import * as ecc from "tiny-secp256k1";
 import { ECPairFactory, ECPairAPI, TinySecp256k1Interface } from "ecpair";
 
-const tinysecp: TinySecp256k1Interface = require("tiny-secp256k1");
+const tinysecp: TinySecp256k1Interface = require('@bitcoinerlab/secp256k1')
+// const tinysecp: TinySecp256k1Interface = require("tiny-secp256k1");
 const bitcoin = require("bitcoinjs-lib");
 import * as chalk from "chalk";
 
