@@ -1,7 +1,7 @@
 "use client"
 import { useContext, useEffect, useState } from "react";
 import axios from 'axios'
-import { NetworkContext } from "@/common/NetworkContextProvider";
+import { AppContext } from "@/common/AppContextProvider";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -12,7 +12,7 @@ export default function Check() {
   const [atomicalId, setAtomicalId] = useState('')
   const [fullRealmName, setFullRealmName] = useState('')
   const [pageState, setPageState] = useState('ready')
-  const { network, api_endpoint } = useContext(NetworkContext)
+  const { network } = useContext(AppContext)
   const [progress, setProgress] = useState(0);
 
   const simulateProgress = () => {

@@ -2,7 +2,6 @@
 import { Header } from "@/components/layouts/Header";
 import { Footer } from "@/components/layouts/Footer";
 import WalletContextProvider from "@/common/WalletContextProvider";
-import NetworkContextProvider from "@/common/NetworkContextProvider";
 import AppContextProvider from "@/common/AppContextProvider"
 import { ThemeProvider } from "@/components/layouts/theme-provider";
 
@@ -14,7 +13,7 @@ export const Providers = ({
 
   return (
     <AppContextProvider>
-      <NetworkContextProvider>
+      <AppContextProvider>
         <WalletContextProvider>
           <ThemeProvider
             attribute="class"
@@ -29,7 +28,7 @@ export const Providers = ({
             <Footer></Footer>
           </ThemeProvider>
         </WalletContextProvider>
-      </NetworkContextProvider>
+      </AppContextProvider>
     </AppContextProvider>
   );
 }

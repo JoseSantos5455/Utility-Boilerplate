@@ -4,19 +4,21 @@ type AppContextType = {
   network: string,
   setNetwork: Function,
   tlr: string,
-  seed: string
+  seed: string,
+  setSeed: Function
 }
 
 const AppContextDefaultValues: AppContextType = {
   network: '',
   setNetwork: (f: any) => f,
   tlr: '',
-  seed: ''
+  seed: '',
+  setSeed: (f: any) => f
 }
 
 export const AppContext = createContext<AppContextType>(AppContextDefaultValues)
 
-export default function NetworkContextProvider({
+export default function AppContextProvider({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -24,10 +26,10 @@ export default function NetworkContextProvider({
 
   const [network, setNetwork] = useState('testnet')
   const [tlr, ] = useState('bullrun')
-  const [seed, ] = useState('')
+  const [seed, setSeed] = useState('')
 
   return (
-    <AppContext.Provider value={{ network, setNetwork, tlr, seed}}>
+    <AppContext.Provider value={{ network, setNetwork, tlr, seed, setSeed}}>
       {children}
     </AppContext.Provider>
   )

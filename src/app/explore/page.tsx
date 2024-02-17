@@ -1,13 +1,13 @@
 "use client"
 import { useContext, useEffect, useState, useCallback } from "react";
-import { NetworkContext } from "@/common/NetworkContextProvider";
+import { AppContext } from "@/common/AppContextProvider";
 import axios from 'axios'
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function Explore() {
 
-  const { network, api_endpoint } = useContext(NetworkContext)
+  const { network, api_endpoint } = useContext(AppContext)
   const [searchStr, setSearchStr] = useState('')
   const [items, setItems] = useState([])
   const [pageState, setPageState] = useState('ready')

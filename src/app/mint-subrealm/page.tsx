@@ -1,21 +1,17 @@
 "use client"
 import { useContext, useEffect, useState } from "react";
-import axios from 'axios'
 import { WalletContext } from "@/common/WalletContextProvider";
-import { NetworkContext } from "@/common/NetworkContextProvider";
+import { AppContext } from "@/common/AppContextProvider";
 
 import { createKeyPair } from "../atomical-lib/utils/create-key-pair";
 
 export default function MintSubrealm () {
 
-  const tlr = 'dntest'
   const [searchStr, setSearchStr] = useState('')
-  const { network, api_endpoint } = useContext(NetworkContext)
+  const { walletData } = useContext(WalletContext)
+  const { network, tlr, seed } = useContext(AppContext)
 
   const mintSubrealm = async () => {
-
-
-
     let str = searchStr.trim()
 
     if (str.startsWith('+')) 
@@ -67,7 +63,19 @@ export default function MintSubrealm () {
         <button onClick={() => mintSubrealm()}>MINT SUBREALM</button>
       </div>
       <div>
-        
+        {`tlr is ${tlr}`}
+      </div>
+      <div>
+        {`net is ${network}`}
+      </div>
+      <div>
+        {`addr is ${walletData.primary_addr}`}
+      </div>
+      <div>
+        {`seed is ${seed}`}
+      </div>
+      <div>
+        {`funding addr is ${seed}`}
       </div>
       <div>
         <button onClick={() => testPrikey()}>Test Prikey</button>
