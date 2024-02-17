@@ -34,12 +34,9 @@
     "next-themes": "^0.2.1",
     "react": "^18",
     "react-dom": "^18",
-    "readline": "^1.3.0",
     "readline-browser": "^0.0.3",
     "tailwind-merge": "^2.2.1",
-    "tailwindcss-animate": "^1.0.7",
-    "tiny-secp256k1": "^2.2.3",
-    "usehooks-ts": "^2.13.0"
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -1,4 +1,4 @@
-import * as readline from 'readline';
+import * as readline from 'readline-browser';
 
 /**
  * Warn or continue
@@ -14,7 +14,7 @@ export const warnContinueAbort = async (msg: any, success: any) => {
 
     try {
         let reply: string = '';
-        const prompt = (query: any) => new Promise((resolve) => rl.question(query, resolve));
+        const prompt = (query: any) => new Promise((resolve) => rl.question(query, {}, resolve));
 
         reply = (await prompt(msg) as any);
         if (reply === success) {

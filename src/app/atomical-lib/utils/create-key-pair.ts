@@ -64,11 +64,14 @@ export const createKeyPair = async (phrase: string = '', path = `m/44'/0'/0'/0/0
         throw 'createKeyPair error child node not match sanity check'
     }
 
-    console.log(p2trPrimary.address)
-    console.log(childNodePrimary.toWIF())
-    console.log(childNodePrimary.privateKey?.toString('hex'))
-    console.log(childNodePrimary.publicKey?.toString('hex'))
-    console.log(childNodeXOnlyPubkeyPrimary.toString('hex'))
+    // console.log(p2trPrimary.address)
+    // console.log(childNodePrimary.toWIF())
+    // console.log(JSON.stringify(p2trPrimary))
+    // console.log(path)
+    // console.log(childNodePrimary.privateKey?.toString('hex'))
+    // console.log(childNodePrimary.publicKey?.toString('hex'))
+    // console.log(childNodeXOnlyPubkeyPrimary.toString('hex'))
+
     // console.log(rootKey.privateKey?.toString())
     // console.log(rootKey.privateKey?.toString())
 

@@ -3,11 +3,12 @@ This file was created by the user:
 https://github.com/danieleth2/atomicals-js/commit/02e854cc71c0f6c6559ff35c2093dc8d526b5d72
 */
 
-import { parentPort } from "worker_threads";
+// import { parentPort } from "worker_threads";
 import { KeyPairInfo, getKeypairInfo } from "./address-keypair-path";
 import { script, payments } from "bitcoinjs-lib";
 import { BitworkInfo, hasValidBitwork } from "./atomical-format-helpers";
-import * as ecc from "tiny-secp256k1";
+import * as ecc from '@bitcoinerlab/secp256k1';
+// import * as ecc from "tiny-secp256k1";
 import { ECPairFactory, ECPairAPI, TinySecp256k1Interface } from "ecpair";
 
 const tinysecp: TinySecp256k1Interface = require('@bitcoinerlab/secp256k1')
@@ -32,7 +33,7 @@ import {
     MAX_SEQUENCE,
     OUTPUT_BYTES_BASE,
 } from "./atomical-operation-builder";
-import { Worker } from "worker_threads";
+// import { Worker } from "worker_threads";
 import { ATOMICALS_PROTOCOL_ENVELOPE_ID } from "../types/protocol-tags";
 import { chunkBuffer } from "./file-utils";
 
@@ -53,8 +54,9 @@ interface WorkerInput {
 }
 
 // This is the worker's message event listener
-if (parentPort) {
-    parentPort.on("message", async (message: WorkerInput) => {
+if (self) {
+    self.addEventListener("message", async (event) => {
+        const message: WorkerInput = event.data
         // Extract parameters from the message
         const {
             copiedData,
@@ -237,7 +239,7 @@ if (parentPort) {
         );
         console.log("Got one finalSequence: " + JSON.stringify(sequence));
 
-        parentPort!.postMessage({
+        self.postMessage({
             finalCopyData,
             finalSequence: sequence,
         });

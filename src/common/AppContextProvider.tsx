@@ -4,16 +4,20 @@ type AppContextType = {
   network: string,
   setNetwork: Function,
   tlr: string,
-  seed: string,
-  setSeed: Function
+  mnemonic: string,
+  setMnemonic: Function,
+  WIF: string,
+  setWIF: Function
 }
 
 const AppContextDefaultValues: AppContextType = {
   network: '',
   setNetwork: (f: any) => f,
   tlr: '',
-  seed: '',
-  setSeed: (f: any) => f
+  mnemonic: '',
+  setMnemonic: (f: any) => f,
+  WIF: '',
+  setWIF: (f: any) => f
 }
 
 export const AppContext = createContext<AppContextType>(AppContextDefaultValues)
@@ -26,10 +30,11 @@ export default function AppContextProvider({
 
   const [network, setNetwork] = useState('testnet')
   const [tlr, ] = useState('bullrun')
-  const [seed, setSeed] = useState('')
+  const [mnemonic, setMnemonic] = useState('')
+  const [WIF, setWIF] = useState('')
 
   return (
-    <AppContext.Provider value={{ network, setNetwork, tlr, seed, setSeed}}>
+    <AppContext.Provider value={{ network, setNetwork, tlr, mnemonic, setMnemonic, WIF, setWIF }}>
       {children}
     </AppContext.Provider>
   )

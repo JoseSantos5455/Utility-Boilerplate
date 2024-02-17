@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 export default function Explore() {
 
-  const { network, api_endpoint } = useContext(AppContext)
+  const { network } = useContext(AppContext)
   const [searchStr, setSearchStr] = useState('')
   const [items, setItems] = useState([])
   const [pageState, setPageState] = useState('ready')
@@ -35,8 +35,9 @@ export default function Explore() {
 
   useEffect(() => {
     console.log(`effect is ${network}`)
-    fetchRealms(api_endpoint, searchStr)
-  }, [api_endpoint])
+    // fetchRealms(api_endpoint, searchStr)
+  // }, [api_endpoint])
+  }, [])
 
   return (
     <div className="mt-4">
@@ -48,9 +49,9 @@ export default function Explore() {
           value={searchStr}
           onChange={e => setSearchStr(e.target.value)}
           onKeyUp={(e) => {
-            if (e.key === 'Enter') {
-              fetchRealms(api_endpoint, searchStr)
-            }
+            // if (e.key === 'Enter') {
+            //   fetchRealms(api_endpoint, searchStr)
+            // }
           }}
         />
       </div>

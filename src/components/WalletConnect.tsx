@@ -25,7 +25,7 @@ declare global {
 
 export const WalletConnect = () => {
   const { walletData, setWalletData } = useContext(WalletContext);
-  const { network, setNetwork, setSeed } = useContext(AppContext)
+  const { network, setNetwork, setMnemonic } = useContext(AppContext)
 
   const connectWizz = async () => {
     if (hasWizzExtension()) {
@@ -38,11 +38,11 @@ export const WalletConnect = () => {
           primary_addr: result[0],
         });
         if (localStorage.getItem('clientSeed')) {
-          setSeed(localStorage.getItem('clientSeed'))
+          setMnemonic(localStorage.getItem('clientSeed'))
         }
         else {
           const clientSeed = createMnemonicPhrase().phrase
-          setSeed(clientSeed)
+          setMnemonic(clientSeed)
           localStorage.setItem('clientSeed', clientSeed)
         }
       }
@@ -66,8 +66,6 @@ export const WalletConnect = () => {
           connected: true,
           primary_addr: result[0],
         });
-        const clientSeed = createMnemonicPhrase().phrase
-        setSeed(clientSeed)
       }
     }
   };
@@ -112,11 +110,11 @@ export const WalletConnect = () => {
           });
 
           if (localStorage.getItem('clientSeed')) {
-            setSeed(localStorage.getItem('clientSeed'))
+            setMnemonic(localStorage.getItem('clientSeed'))
           }
           else {
             const clientSeed = createMnemonicPhrase().phrase
-            setSeed(clientSeed)
+            setMnemonic(clientSeed)
             localStorage.setItem('clientSeed', clientSeed)
           }
         }

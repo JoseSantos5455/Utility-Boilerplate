@@ -1,29 +1,3 @@
-/**
-MIT License
-
-Copyright (c) 2023 The Atomicals Developers - atomicals.xyz
-
-Parts of this file contains code created by the following users:
-https://github.com/danieleth2/atomicals-js/commit/02e854cc71c0f6c6559ff35c2093dc8d526b5d72
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
 
 import { ElectrumApiInterface } from "../api/electrum-api.interface";
 import { KeyPairInfo, getKeypairInfo } from "./address-keypair-path";
@@ -63,9 +37,8 @@ import { getFundingUtxo } from "./select-funding-utxo";
 import { sleeper } from "./utils";
 import { witnessStackToScriptWitness } from "../commands/witness_stack_to_script_witness"
 import { IInputUtxoPartial } from "../types/UTXO.interface";
-import { IWalletRecord } from "./validate-wallet-storage";
-import { parentPort, Worker } from "worker_threads";
-import * as readline from 'readline';
+// import { parentPort, Worker } from "worker_threads";
+import * as readline from 'readline-browser';
 
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
 export const DEFAULT_SATS_BYTE = 10;
@@ -78,6 +51,20 @@ export const INPUT_BYTES_BASE = 57.5;
 export const OUTPUT_BYTES_BASE = 43;
 export const EXCESSIVE_FEE_LIMIT: number = 1000000; // Limit to 1/100 of a BTC for now
 export const MAX_SEQUENCE = 0xffffffff;
+
+export interface IWalletRecord {
+  address: string,
+  WIF: string,
+  childNode?: any
+}
+
+export interface IValidatedWalletInfo {
+    primary: IWalletRecord;
+    funding: IWalletRecord;
+    imported: {
+      [alias: string]: IWalletRecord;
+    }
+}
 
 interface WorkerOut {
     finalCopyData: AtomicalsPayload;
@@ -694,17 +681,20 @@ export class AtomicalOperationBuilder {
             // Close the electrum API connection
             this.options.electrumApi.close();
 
+            // temporary
             // Set the default concurrency level to the number of CPU cores minus 1
-            const defaultConcurrency = os.cpus().length - 1;
-            // Read the concurrency level from .env file
-            const envConcurrency = process.env.CONCURRENCY
-                ? parseInt(process.env.CONCURRENCY, 10)
-                : -1;
+            // const defaultConcurrency = os.cpus().length - 1;
+            // // Read the concurrency level from .env file
+            // const envConcurrency = process.env.CONCURRENCY
+            //     ? parseInt(process.env.CONCURRENCY, 10)
+            //     : -1;
             // Use envConcurrency if it is a positive number; otherwise, use defaultConcurrency
-            const concurrency = envConcurrency > 0
-                ? envConcurrency
-                : defaultConcurrency;
+            // const concurrency = envConcurrency > 0
+            //     ? envConcurrency
+            //     : defaultConcurrency;
             // Logging the set concurrency level to the console
+
+            const concurrency = 8
             console.log(`Concurrency set to: ${concurrency}`);
             const workerOptions = this.options;
             const workerBitworkInfoCommit = this.bitworkInfoCommit;
@@ -736,7 +726,8 @@ export class AtomicalOperationBuilder {
                 const worker = new Worker("./dist/utils/miner-worker.js");
 
                 // Handle messages from workers
-                worker.on("message", async (message: WorkerOut) => {
+                worker.addEventListener("message", async (event) => {
+                    const message: WorkerOut = event.data
                     console.log("Solution found, try composing the transaction...");
 
                     if (!isWorkDone) {
@@ -816,18 +807,16 @@ export class AtomicalOperationBuilder {
                         resolveWorkerPromise(message);
                     }
                 });
-                worker.on("error", (error) => {
-                    console.error("worker error: ", error);
+                worker.addEventListener("error", (error) => {
+                    console.error(error);
                     if (!isWorkDone) {
                         isWorkDone = true;
                         stopAllWorkers();
                     }
                 });
 
-                worker.on("exit", (code) => {
-                    if (code !== 0) {
-                        console.error(`Worker stopped with exit code ${code}`);
-                    }
+                worker.addEventListener("exit", (event) => {
+                    console.error(`Worker stopped with exit code `);
                 });
 
                 // Calculate sequence range for this worker
@@ -1329,7 +1318,7 @@ export class AtomicalOperationBuilder {
             });
             try {
                 let reply: string = '';
-                const prompt = (query: any) => new Promise((resolve) => rl.question(query, resolve));
+                const prompt = (query: any) => new Promise((resolve) => rl.question(query, {}, resolve));
                 console.log(`Excessive fee ${fee} satoshis detected. Hardcoded to ${EXCESSIVE_FEE_LIMIT} satoshis. Aborting due to protect funds.`)
                 const allowedInput = ['y', 'yes', 'n', 'no'];
                 while (!allowedInput.includes(reply)) {
