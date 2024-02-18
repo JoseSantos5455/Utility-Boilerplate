@@ -14,7 +14,6 @@ import { ECPairFactory, ECPairAPI, TinySecp256k1Interface } from "ecpair";
 const tinysecp = require('@bitcoinerlab/secp256k1')
 // const tinysecp: TinySecp256k1Interface = require("tiny-secp256k1");
 const bitcoin = require("bitcoinjs-lib");
-import * as chalk from "chalk";
 
 bitcoin.initEccLib(ecc);
 import { initEccLib, networks, Psbt } from "bitcoinjs-lib";
@@ -200,7 +199,7 @@ if (self) {
             ) {
                 // Valid proof of work found, log success message
                 console.log(
-                    chalk.green(prelimTx.getId(), ` sequence: (${sequence})`)
+                    console.log(prelimTx.getId(), ` sequence: (${sequence})`)
                 );
                 console.log(
                     "\nBitwork matches commit txid! ",

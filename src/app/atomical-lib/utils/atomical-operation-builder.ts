@@ -694,7 +694,7 @@ export class AtomicalOperationBuilder {
             //     : defaultConcurrency;
             // Logging the set concurrency level to the console
 
-            const concurrency = 8
+            const concurrency = 1
             console.log(`Concurrency set to: ${concurrency}`);
             const workerOptions = this.options;
             const workerBitworkInfoCommit = this.bitworkInfoCommit;
@@ -723,13 +723,15 @@ export class AtomicalOperationBuilder {
             // Initialize and start worker threads
             for (let i = 0; i < concurrency; i++) {
                 console.log("Initializing worker: " + i);
-                const url = new URL('./miner-workerjs.js', import.meta.url)
-                const worker = new Worker(url);
+                const url = new URL('./worker_bundle.js', import.meta.url)
+                // const worker = new Worker(url, {type: "module"});
+                const worker = new Worker('./worker_bundle.js')
 
                 // Handle messages from workers
                 worker.addEventListener("message", async (event) => {
                     const message: WorkerOut = event.data
                     console.log("Solution found, try composing the transaction...");
+                    console.log(message)
 
                     if (!isWorkDone) {
                         isWorkDone = true;
@@ -786,15 +788,18 @@ export class AtomicalOperationBuilder {
                             psbtStart,
                             interTx
                         );
-                        if (!this.broadcastWithRetries(rawtx)) {
-                            console.log("Error sending", interTx.getId(), rawtx);
-                            throw new Error(
-                                "Unable to broadcast commit transaction after attempts: " +
-                                    interTx.getId()
-                            );
-                        } else {
-                            console.log("Success sent tx: ", interTx.getId());
-                        }
+
+                        // temporary down
+
+                        // if (!this.broadcastWithRetries(rawtx)) {
+                        //     console.log("Error sending", interTx.getId(), rawtx);
+                        //     throw new Error(
+                        //         "Unable to broadcast commit transaction after attempts: " +
+                        //             interTx.getId()
+                        //     );
+                        // } else {
+                        //     console.log("Success sent tx: ", interTx.getId());
+                        // }
 
                         commitMinedWithBitwork = true;
                         performBitworkForCommitTx = false;
