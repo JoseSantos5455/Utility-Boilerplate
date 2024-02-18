@@ -49,9 +49,7 @@ export class MintInteractiveSubrealmCommand implements CommandInterface {
     const finalSubrealmPart = realmParts[realmParts.length - 1];
     // Validate that the addresses are valid
     try {
-      console.log(this.address)
       detectAddressTypeToScripthash(this.address);
-      
       console.log("Initial mint address:", this.address);
     } catch (ex) {
       console.log('Error validating initial owner address');

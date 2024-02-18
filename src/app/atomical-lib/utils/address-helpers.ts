@@ -8,10 +8,6 @@ import { AtomicalStatus, Location, LocationInfo } from "../interfaces/atomical-s
 import { IInputUtxoPartial } from "../types/UTXO.interface";
 // import { NETWORK } from "../commands/command-helpers";
 
-/**
- * temporary
- */
-const NETWORK = 'testnet'
 
 
 
@@ -21,6 +17,11 @@ import * as dotenv from 'dotenv'
 import { toXOnly } from "./create-key-pair";
 import { Network } from "bitcoinjs-lib";
 dotenv.config();
+
+/**
+ * temporary
+ */
+const NETWORK = bitcoin.networks.testnet
 
 function convertAddressToScripthash(address: any, network: any) {
   const output = bitcoin.address.toOutputScript(address, network);

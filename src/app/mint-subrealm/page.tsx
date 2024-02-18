@@ -42,11 +42,11 @@ export default function MintSubrealm () {
       return
     }
 
-    const atomicals = new Atomicals(ElectrumApi.createClient(process.env.ELECTRUMX_PROXY_BASE_URL || ''));
+    const atomicals = new Atomicals(ElectrumApi.createClient((network === 'testnet' ? process.env.NEXT_PUBLIC_ELECTRUMX_PROXY_TESTNET_BASE_URL : process.env.NEXT_PUBLIC_ELECTRUMX_PROXY_BASE_URL) || ''));
     try {
-
-    const funding_address = await createKeyPair("short also cash wet ice human text economy program grocery actress bird", "m/86'/0'/0'/1/0")
-    const seed = await bip39.mnemonicToSeed("short also cash wet ice human text economy program grocery actress bird");
+      const primary_address = await createKeyPair(mnemonic, "m/86'/0'/0'/0/0")
+      const funding_address = await createKeyPair(mnemonic, "m/86'/0'/0'/1/0")
+      const seed = await bip39.mnemonicToSeed(mnemonic);
       const rootKey = bip32.fromSeed(seed);
       const childNode = rootKey.derivePath("m/86'/0'/0'/1/0");    // funding address
       const owner = {

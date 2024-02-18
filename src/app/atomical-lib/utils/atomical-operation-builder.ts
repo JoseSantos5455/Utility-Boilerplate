@@ -1,7 +1,6 @@
 
 import { ElectrumApiInterface } from "../api/electrum-api.interface";
 import { KeyPairInfo, getKeypairInfo } from "./address-keypair-path";
-import * as os from "os";
 import {
     BitworkInfo,
     hasValidBitwork,
@@ -38,6 +37,7 @@ import { sleeper } from "./utils";
 import { witnessStackToScriptWitness } from "../commands/witness_stack_to_script_witness"
 import { IInputUtxoPartial } from "../types/UTXO.interface";
 // import { parentPort, Worker } from "worker_threads";
+import Worker from 'web-worker';
 import * as readline from 'readline-browser';
 
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
@@ -723,7 +723,8 @@ export class AtomicalOperationBuilder {
             // Initialize and start worker threads
             for (let i = 0; i < concurrency; i++) {
                 console.log("Initializing worker: " + i);
-                const worker = new Worker("./dist/utils/miner-worker.js");
+                const url = new URL('./miner-workerjs.js', import.meta.url)
+                const worker = new Worker(url);
 
                 // Handle messages from workers
                 worker.addEventListener("message", async (event) => {
