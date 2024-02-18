@@ -23,6 +23,7 @@
     "borc": "^3.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "comlink": "^4.4.1",
     "crockford-base32": "^2.0.0",
     "dotenv": "^16.4.4",
     "ecpair": "^2.1.0",
