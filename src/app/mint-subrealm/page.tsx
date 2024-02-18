@@ -16,7 +16,7 @@ const bip32 = BIP32Factory(ecc);
 
 export default function MintSubrealm () {
 
-  const [searchStr, setSearchStr] = useState('')
+  const [searchStr, setSearchStr] = useState('bullrun.0')
   const { walletData } = useContext(WalletContext)
   const { network, tlr, mnemonic } = useContext(AppContext)
 
@@ -58,7 +58,7 @@ export default function MintSubrealm () {
 
       await atomicals.electrumApi.open();
       const command: CommandInterface = new MintInteractiveSubrealmCommand(atomicals.electrumApi, {
-        satsbyte: 200,
+        satsbyte: -1,
         satsoutput: 1000
       }, str, walletData.primary_addr, WIF, owner);
       return await command.run();

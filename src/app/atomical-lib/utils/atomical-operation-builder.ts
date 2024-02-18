@@ -694,7 +694,7 @@ export class AtomicalOperationBuilder {
             //     : defaultConcurrency;
             // Logging the set concurrency level to the console
 
-            const concurrency = 1
+            const concurrency = 4
             console.log(`Concurrency set to: ${concurrency}`);
             const workerOptions = this.options;
             const workerBitworkInfoCommit = this.bitworkInfoCommit;
@@ -723,8 +723,8 @@ export class AtomicalOperationBuilder {
             // Initialize and start worker threads
             for (let i = 0; i < concurrency; i++) {
                 console.log("Initializing worker: " + i);
-                const url = new URL('./test-worker.js', import.meta.url)
-                const worker = new Worker(url, {type: "module"});
+                // const url = new URL('./worker_bundle.js', import.meta.url)
+                const worker = new Worker('./worker_bundle.js', {type: "module"});
 
                 // Handle messages from workers
                 worker.addEventListener("message", async (event) => {
@@ -788,17 +788,15 @@ export class AtomicalOperationBuilder {
                             interTx
                         );
 
-                        // temporary down
-
-                        // if (!this.broadcastWithRetries(rawtx)) {
-                        //     console.log("Error sending", interTx.getId(), rawtx);
-                        //     throw new Error(
-                        //         "Unable to broadcast commit transaction after attempts: " +
-                        //             interTx.getId()
-                        //     );
-                        // } else {
-                        //     console.log("Success sent tx: ", interTx.getId());
-                        // }
+                        if (!this.broadcastWithRetries(rawtx)) {
+                            console.log("Error sending", interTx.getId(), rawtx);
+                            throw new Error(
+                                "Unable to broadcast commit transaction after attempts: " +
+                                    interTx.getId()
+                            );
+                        } else {
+                            console.log("Success sent tx: ", interTx.getId());
+                        }
 
                         commitMinedWithBitwork = true;
                         performBitworkForCommitTx = false;
@@ -846,6 +844,7 @@ export class AtomicalOperationBuilder {
                     workerBitworkInfoCommit,
                     scriptP2TR,
                     hashLockP2TR,
+                    fundingKeypair
                 };
                 worker.postMessage(messageToWorker);
                 workers.push(worker);
