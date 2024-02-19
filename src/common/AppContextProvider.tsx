@@ -28,7 +28,7 @@ export default function AppContextProvider({
   children: React.ReactNode;
 }>) {
 
-  const [network, setNetwork] = useState('bitcoin')
+  const [network, setNetwork] = useState('testnet')
   const [tlr, ] = useState(process.env.NEXT_PUBLIC_TOP_LEVEL_REALM || 'bullrun')
   const [mnemonic, setMnemonic] = useState('')
   const [WIF, setWIF] = useState('')

@@ -50,13 +50,6 @@ export const WalletConnect = () => {
     }
   };
 
-  const isWizzConnected = async () => {
-    if (hasWizzExtension()) {
-      const result: string[] = await window.wizz.getAccounts()
-      return result.length > 0
-    }
-  }
-
   const connectUnisat = async () => {
     if (hasUnisatExtension()) {
       const result: string[] = await window.unisat.requestAccounts();
@@ -67,9 +60,31 @@ export const WalletConnect = () => {
           connected: true,
           primary_addr: result[0],
         });
+        if (localStorage.getItem('clientSeed')) {
+          setMnemonic(localStorage.getItem('clientSeed'))
+        }
+        else {
+          const clientSeed = createMnemonicPhrase().phrase
+          setMnemonic(clientSeed)
+          localStorage.setItem('clientSeed', clientSeed)
+        }
       }
     }
   };
+
+  const isWizzConnected = async () => {
+    if (hasWizzExtension()) {
+      const result: string[] = await window.wizz.getAccounts()
+      return result.length > 0
+    }
+  }
+
+  const isUnisatConnected = async () => {
+    if (hasUnisatExtension()) {
+      const result: string[] = await window.unisat.getAccounts()
+      return result.length > 0
+    }
+  }
 
   const getWizzAccounts = async () => {
     if (typeof window !== 'undefined' && typeof window.wizz !== 'undefined') {
@@ -79,6 +94,14 @@ export const WalletConnect = () => {
     return []
   }
 
+  const getUnisatAccounts = async () => {
+    if (typeof window !== 'undefined' && typeof window.unisat !== 'undefined') {
+      const accounts: string[] = await window.unisat.getAccounts()
+      return accounts
+    }
+    return []
+  }
+  
   const disconnectWallet = () => {
     setWalletData({
       type: null,
@@ -90,14 +113,21 @@ export const WalletConnect = () => {
   const hasWizzExtension = () => {
     return typeof window !== "undefined" && typeof window.wizz !== "undefined";
   };
+
   const hasUnisatExtension = () => {
-    return typeof window !== 'undefined' && typeof window.unisat !== 'undefined';
+    return typeof window !== "undefined" && typeof window.unisat !== "undefined";
   };
 
   const handleSwitchChange = async (checked: any) => {
     try {
-      await window.wizz.switchNetwork(checked ? "livenet" : "testnet");
-      setNetwork(checked ? 'bitcoin' : 'testnet');
+      if (await isWizzConnected) {
+        await window.wizz.switchNetwork(checked ? "livenet" : "testnet");
+        setNetwork(checked ? 'bitcoin' : 'testnet');
+      }
+      else if (await isUnisatConnected) {
+        await window.unisat.switchNetwork(checked ? "livenet" : "testnet");
+        setNetwork(checked ? 'bitcoin' : 'testnet');
+      }
     } catch (e) {
       console.log(e);
     }
@@ -109,8 +139,7 @@ export const WalletConnect = () => {
 
   useEffect(() => {
     const checkRealWalletConnectivity = async () => {
-      if (typeof window !== 'undefined' && await hasWizzExtension() && await isWizzConnected()) {
-        
+      if (typeof window !== 'undefined' && await hasWizzExtension() && await isWizzConnected()) {       
         window.wizz.on('networkChanged', (network_str: string) => {
           if (network_str === 'livenet')
             setNetwork('bitcoin')
@@ -128,6 +157,38 @@ export const WalletConnect = () => {
           setWalletData({
             ...walletData,
             type: "wizz",
+            connected: true,
+            primary_addr: accounts[0],
+          });
+
+          if (localStorage.getItem('clientSeed')) {
+            setMnemonic(localStorage.getItem('clientSeed'))
+          }
+          else {
+            const clientSeed = createMnemonicPhrase().phrase
+            setMnemonic(clientSeed)
+            localStorage.setItem('clientSeed', clientSeed)
+          }
+        }
+      }
+      else if (typeof window !== 'undefined' && await hasUnisatExtension() && await isUnisatConnected()) {
+        window.unisat.on('networkChanged', (network_str: string) => {
+          if (network_str === 'livenet')
+            setNetwork('bitcoin')
+          else
+            setNetwork('testnet')
+          connectUnisat()
+        })
+
+        window.unisat.on('accountsChanged', (accounts: Array<string>) => {
+          connectUnisat()
+        });
+
+        const accounts = await getUnisatAccounts()
+        if (accounts.length > 0) {
+          setWalletData({
+            ...walletData,
+            type: "unisat",
             connected: true,
             primary_addr: accounts[0],
           });
