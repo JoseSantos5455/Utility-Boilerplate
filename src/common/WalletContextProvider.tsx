@@ -4,11 +4,7 @@ type WalletContextType = {
   walletData: {
     type: string,
     connected: boolean,
-    primary_addr: string,
-    legacy_taproot_addr: string,
-    legacy_addr: string,
-    segwit_addr: string,
-    taproot_addr: string
+    primary_addr: string
   },
   setWalletData: Function
 }
@@ -17,11 +13,7 @@ const WalletContextDefaultValues: WalletContextType = {
   walletData: {
     type: '',
     connected: false,
-    primary_addr: '',
-    legacy_taproot_addr: '',
-    legacy_addr: '',
-    segwit_addr: '',
-    taproot_addr: ''
+    primary_addr: ''
   },
   setWalletData: (f: any) => f
 }
@@ -37,11 +29,7 @@ export default function WalletContextProvider({
   const [walletData, setWalletData] = useState({
     type: '',
     connected: false,
-    primary_addr: '',
-    legacy_taproot_addr: '',
-    legacy_addr: '',
-    segwit_addr: '',
-    taproot_addr: ''
+    primary_addr: ''
   })
 
   return (

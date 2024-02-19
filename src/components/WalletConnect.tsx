@@ -15,6 +15,7 @@ import { DollarIcon } from "./icons/DollarIcon";
 import { RepairIcon } from "./icons/RepairIcon";
 import { Switch } from "./ui/switch";
 import { createMnemonicPhrase } from "@/app/atomical-lib/utils/create-mnemonic-phrase";
+import { switchLibraryNetwork } from "@/app/atomical-lib/commands/command-helpers";
 
 declare global {
   interface Window {
@@ -93,13 +94,35 @@ export const WalletConnect = () => {
     return typeof window !== 'undefined' && typeof window.unisat !== 'undefined';
   };
 
-  const handleSwitchChange = (checked: any) => {
-    setNetwork(checked ? 'mainnet' : 'testnet');
+  const handleSwitchChange = async (checked: any) => {
+    try {
+      await window.wizz.switchNetwork(checked ? "livenet" : "testnet");
+      setNetwork(checked ? 'bitcoin' : 'testnet');
+    } catch (e) {
+      console.log(e);
+    }
   };
+
+  useEffect(() => {
+    switchLibraryNetwork(network)
+  }, [network])
 
   useEffect(() => {
     const checkRealWalletConnectivity = async () => {
       if (typeof window !== 'undefined' && await hasWizzExtension() && await isWizzConnected()) {
+        
+        window.wizz.on('networkChanged', (network_str: string) => {
+          if (network_str === 'livenet')
+            setNetwork('bitcoin')
+          else
+            setNetwork('testnet')
+          connectWizz()
+        })
+
+        window.wizz.on('accountsChanged', (accounts: Array<string>) => {
+          connectWizz()
+        });
+
         const accounts = await getWizzAccounts()
         if (accounts.length > 0) {
           setWalletData({
@@ -140,7 +163,7 @@ export const WalletConnect = () => {
 
           {walletData.connected ? (
             <>
-              <Link target="_blank" href={"https://mempool.space/address/" + walletData.primary_addr}>
+              <Link target="_blank" href={`https://mempool.space/${network === "testnet" ? "testnet/" : ""}address/${walletData.primary_addr}`}>
                 History
               </Link>
               <MenubarSeparator />
@@ -179,11 +202,11 @@ export const WalletConnect = () => {
 
           <MenubarSeparator />
           <div className="w-full flex content-center items-center justify-between">
-            {network === 'mainnet' ?
+            {network === 'bitcoin' ?
               <DollarIcon /> : <RepairIcon />
             }
             <Switch
-              checked={network === 'mainnet'}
+              checked={network === 'bitcoin'}
               onCheckedChange={handleSwitchChange}
             >
             </Switch>

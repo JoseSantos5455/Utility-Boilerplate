@@ -42,7 +42,7 @@ export default function MyAssets () {
               {walletData.type}
             </div>
             <div>
-              {walletData.legacy_taproot_addr}
+              {walletData.primary_addr}
             </div>
 
             {/* <div className="mt-6">

@@ -36,8 +36,6 @@ import { getFundingUtxo } from "./select-funding-utxo";
 import { sleeper } from "./utils";
 import { witnessStackToScriptWitness } from "../commands/witness_stack_to_script_witness"
 import { IInputUtxoPartial } from "../types/UTXO.interface";
-// import { parentPort, Worker } from "worker_threads";
-// import Worker from 'web-worker';
 import * as readline from 'readline-browser';
 
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
@@ -578,8 +576,8 @@ export class AtomicalOperationBuilder {
                 copiedData["args"] = copiedData["args"] || {};
                 copiedData["args"]["request_dmitem"] = this.requestName;
                 copiedData["args"]["parent_container"] = this.requestParentId;
-                console.log(copiedData);
-                console.log(" this.requestParentId;", this.requestParentId);
+                // console.log(copiedData);
+                // console.log(" this.requestParentId;", this.requestParentId);
             default:
                 break;
         }
@@ -615,10 +613,10 @@ export class AtomicalOperationBuilder {
             let estimatedSatsByte = Math.ceil((response.result / 1000) * 100000000);
             if (isNaN(estimatedSatsByte)) {
                 estimatedSatsByte = 200; // Something went wrong, just default to 30 bytes sat estimate
-                console.log('satsbyte fee query failed, defaulted to: ', estimatedSatsByte)
+                // console.log('satsbyte fee query failed, defaulted to: ', estimatedSatsByte)
             } else {
                 this.options.satsbyte = estimatedSatsByte; 
-                console.log('satsbyte fee auto-detected to: ', estimatedSatsByte)
+                // console.log('satsbyte fee auto-detected to: ', estimatedSatsByte)
             }
         } else {
             console.log('satsbyte fee manually set to: ', this.options.satsbyte)
@@ -639,17 +637,17 @@ export class AtomicalOperationBuilder {
             copiedData["args"]["time"] = unixtime;
         }
 
-        console.log("copiedData", copiedData);
+        // console.log("copiedData", copiedData);
         const mockAtomPayload = new AtomicalsPayload(copiedData);
         if (this.options.verbose) {
             console.log("copiedData", copiedData);
         }
         const payloadSize = mockAtomPayload.cbor().length;
-        console.log("Payload CBOR Size (bytes): ", payloadSize);
+        // console.log("Payload CBOR Size (bytes): ", payloadSize);
 
-        if (payloadSize <= 1000) {
-            console.log("Payload Encoded: ", copiedData);
-        }
+        // if (payloadSize <= 1000) {
+        //     console.log("Payload Encoded: ", copiedData);
+        // }
 
         const mockBaseCommitForFeeCalculation: { scriptP2TR: any; hashLockP2TR: any } =
             prepareCommitRevealConfig(
@@ -683,19 +681,14 @@ export class AtomicalOperationBuilder {
 
             // temporary
             // Set the default concurrency level to the number of CPU cores minus 1
-            // const defaultConcurrency = os.cpus().length - 1;
-            // // Read the concurrency level from .env file
-            // const envConcurrency = process.env.CONCURRENCY
-            //     ? parseInt(process.env.CONCURRENCY, 10)
-            //     : -1;
+            let concurrency = 1
+            if(typeof navigator !== 'undefined' && navigator && navigator.hardwareConcurrency)
+                concurrency = navigator.hardwareConcurrency - 2
             // Use envConcurrency if it is a positive number; otherwise, use defaultConcurrency
-            // const concurrency = envConcurrency > 0
-            //     ? envConcurrency
-            //     : defaultConcurrency;
+            concurrency = concurrency > 8 ? 8 : concurrency
             // Logging the set concurrency level to the console
-
-            const concurrency = 4
             console.log(`Concurrency set to: ${concurrency}`);
+
             const workerOptions = this.options;
             const workerBitworkInfoCommit = this.bitworkInfoCommit;
 
@@ -720,17 +713,19 @@ export class AtomicalOperationBuilder {
             // Calculate the range of sequences to be assigned to each worker
             const seqRangePerWorker = Math.floor(MAX_SEQUENCE / concurrency);
 
+            console.log('currentnetwork')
+            console.log(NETWORK)
+            return;
+
             // Initialize and start worker threads
             for (let i = 0; i < concurrency; i++) {
                 console.log("Initializing worker: " + i);
-                // const url = new URL('./worker_bundle.js', import.meta.url)
                 const worker = new Worker('./worker_bundle.js', {type: "module"});
 
                 // Handle messages from workers
                 worker.addEventListener("message", async (event) => {
                     const message: WorkerOut = event.data
                     console.log("Solution found, try composing the transaction...");
-                    console.log(message)
 
                     if (!isWorkDone) {
                         isWorkDone = true;

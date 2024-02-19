@@ -4,8 +4,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Image from "next/image";
 
 export default function Profile() {
-
-
     return (
         <div className="pt-4 flex items-center justify-center">
             <Card className="flex flex-col items-center">

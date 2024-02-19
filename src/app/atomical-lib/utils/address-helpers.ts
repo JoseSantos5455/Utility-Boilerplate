@@ -6,10 +6,7 @@ import * as ecc from '@bitcoinerlab/secp256k1';
 import { IValidatedWalletInfo } from "./atomical-operation-builder";
 import { AtomicalStatus, Location, LocationInfo } from "../interfaces/atomical-status.interface";
 import { IInputUtxoPartial } from "../types/UTXO.interface";
-// import { NETWORK } from "../commands/command-helpers";
-
-
-
+import { NETWORK } from "../commands/command-helpers";
 
 const bitcoin = require('bitcoinjs-lib');
 bitcoin.initEccLib(ecc);
@@ -17,11 +14,6 @@ import * as dotenv from 'dotenv'
 import { toXOnly } from "./create-key-pair";
 import { Network } from "bitcoinjs-lib";
 dotenv.config();
-
-/**
- * temporary
- */
-const NETWORK = bitcoin.networks.testnet
 
 function convertAddressToScripthash(address: any, network: any) {
   const output = bitcoin.address.toOutputScript(address, network);

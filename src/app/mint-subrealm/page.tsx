@@ -44,7 +44,7 @@ export default function MintSubrealm () {
 
     const atomicals = new Atomicals(ElectrumApi.createClient((network === 'testnet' ? process.env.NEXT_PUBLIC_ELECTRUMX_PROXY_TESTNET_BASE_URL : process.env.NEXT_PUBLIC_ELECTRUMX_PROXY_BASE_URL) || ''));
     try {
-      const primary_address = await createKeyPair(mnemonic, "m/86'/0'/0'/0/0")
+      // const primary_address = await createKeyPair(mnemonic, "m/86'/0'/0'/0/0")
       const funding_address = await createKeyPair(mnemonic, "m/86'/0'/0'/1/0")
       const seed = await bip39.mnemonicToSeed(mnemonic);
       const rootKey = bip32.fromSeed(seed);
@@ -95,13 +95,13 @@ export default function MintSubrealm () {
       <div>
         <button onClick={() => mintSubrealm()}>MINT SUBREALM</button>
       </div>
-      <div>
+      {/* <div>
         {`tlr is ${tlr}`}
-      </div>
+      </div> */}
       <div>
         {`net is ${network}`}
       </div>
-      <div>
+      {/* <div>
         {`addr is ${walletData.primary_addr}`}
       </div>
       <div>
@@ -109,7 +109,7 @@ export default function MintSubrealm () {
       </div>
       <div>
         {`funding addr is ${mnemonic}`}
-      </div>
+      </div> */}
       <div>
         <button onClick={() => testPrikey()}>Test Prikey</button>
       </div>

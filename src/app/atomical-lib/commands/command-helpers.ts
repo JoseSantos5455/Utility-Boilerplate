@@ -25,8 +25,14 @@ dotenv.config();
 
 export const RBF_INPUT_SEQUENCE = 0xfffffffd;
 // export const NETWORK = process.env.NETWORK === 'testnet' ? networks.testnet : process.env.NETWORK == "regtest" ? networks.regtest : networks.bitcoin;
-export const NETWORK = networks.testnet
+export let NETWORK = networks.testnet
 
+export const switchLibraryNetwork = (str: string) => {
+    if (str === 'bitcoin')
+        NETWORK = networks.bitcoin
+    else if (str === 'testnet')
+        NETWORK = networks.testnet
+}
 
 export function logBanner(text: string) {
     console.log("====================================================================")

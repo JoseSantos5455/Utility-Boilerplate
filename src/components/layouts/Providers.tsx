@@ -22,7 +22,7 @@ export const Providers = ({
             disableTransitionOnChange
           >
             <Header></Header>
-            <div className="lg:max-w-screen-lg mx-auto">
+            <div className="lg:max-w-screen-lg mx-auto flex items-center justify-center">
               {children}
             </div>
             <Footer></Footer>
