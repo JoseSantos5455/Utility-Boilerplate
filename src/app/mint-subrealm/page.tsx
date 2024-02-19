@@ -12,37 +12,55 @@ import { MintInteractiveSubrealmCommand } from "../atomical-lib/commands/mint-in
 const bip39 = require('bip39')
 import BIP32Factory from "bip32";
 import * as ecc from '@bitcoinerlab/secp256k1';
+import { QrCode } from "lucide-react";
 const bip32 = BIP32Factory(ecc);
 
 export default function MintSubrealm () {
 
-  const [searchStr, setSearchStr] = useState('bullrun.0')
+  const [fullname, setFullname] = useState('bullrun.')
   const { walletData } = useContext(WalletContext)
-  const { network, tlr, mnemonic } = useContext(AppContext)
+  const [receiverAddr, setReceiverAddr] = useState("")
+  const { network, tlr, mnemonic, toNotify, setToNotify, subrealmCurrentState, setSubrealmCurrentState, qrCode } = useContext(AppContext)
+
+  useEffect(() => {
+    setReceiverAddr(walletData.primary_addr)
+  }, [walletData.primary_addr])
+
+  const pushInfo = (info: any) => {
+    if (info.state)
+      setSubrealmCurrentState(info.state)
+    if (info.warning)
+      setToNotify(info.warning)
+  }
 
   const mintSubrealm = async () => {
-    let str = searchStr.trim()
+    let str = fullname.trim()
+    setSubrealmCurrentState('started')
 
     if (str.startsWith('+')) 
       str = str.substring(1, str.length).trim()
 
     if (!str) {
-      alert('input your subrealm')
+      setToNotify('input your subrealm')
+      setSubrealmCurrentState('error')
       return
     }
 
     if (!str.startsWith(`${tlr}.`) || str.split('.').length > 2) {
-      alert(`you can only mint \'${tlr}\' subrealms here...`)
+      setToNotify(`you can only mint \'${tlr}\' subrealms here...`)
+      setSubrealmCurrentState('error')
       return
     }
 
     let just_str = str.substring((tlr.length + 1), str.length).trim()
     if (!just_str) {
-      alert(`input your subrealm after ${tlr}`)
+      setToNotify(`input your subrealm after ${tlr}`)
+      setSubrealmCurrentState('error')
       return
     }
 
     const atomicals = new Atomicals(ElectrumApi.createClient((network === 'testnet' ? process.env.NEXT_PUBLIC_ELECTRUMX_PROXY_TESTNET_BASE_URL : process.env.NEXT_PUBLIC_ELECTRUMX_PROXY_BASE_URL) || ''));
+    setSubrealmCurrentState('initilized Electrum')
     try {
       // const primary_address = await createKeyPair(mnemonic, "m/86'/0'/0'/0/0")
       const funding_address = await createKeyPair(mnemonic, "m/86'/0'/0'/1/0")
@@ -56,31 +74,23 @@ export default function MintSubrealm () {
       }
       const WIF = funding_address.WIF
 
+      setSubrealmCurrentState('prepared funding address')
       await atomicals.electrumApi.open();
       const command: CommandInterface = new MintInteractiveSubrealmCommand(atomicals.electrumApi, {
         satsbyte: -1,
         satsoutput: 1000
-      }, str, walletData.primary_addr, WIF, owner);
-      return await command.run();
+      }, str, receiverAddr, WIF, owner);
+      const res = await command.run(pushInfo);
+      // if (!res.success) {
+      //   setToNotify(res.message)
+      //   setSubrealmCurrentState('error')
+      // }
     } catch (error: any) {
-      return {
-        success: false,
-        message: error.toString(),
-        error
-      }
+      // setToNotify(error.toString())
+      // setSubrealmCurrentState('error')
     } finally {
       atomicals.electrumApi.close();
     }
-  }
-
-  const testPrikey = async () => {
-    // const primary_address = await createKeyPair("short also cash wet ice human text economy program grocery actress bird", "m/86'/0'/0'/0/0")
-    // const funding_address = await createKeyPair("short also cash wet ice human text economy program grocery actress bird", "m/86'/0'/0'/1/0")
-
-    // const seed = await bip39.mnemonicToSeed("short also cash wet ice human text economy program grocery actress bird");
-    // const rootKey = bip32.fromSeed(seed);
-    // const childNode = rootKey.derivePath("m/86'/0'/0'/1/0");    // funding address
-    // console.log(JSON.stringify(childNode))
   }
 
   return (
@@ -88,31 +98,54 @@ export default function MintSubrealm () {
       <div>
         <input 
           type="text" 
-          value={searchStr}
-          onChange={e => setSearchStr(e.target.value)}
+          value={fullname}
+          onChange={e => setFullname(e.target.value)}
         />
       </div>
       <div>
-        <button onClick={() => mintSubrealm()}>MINT SUBREALM</button>
+        <button disabled={subrealmCurrentState !== "ready" && subrealmCurrentState !== "error"} onClick={() => mintSubrealm()}>MINT SUBREALM</button>
       </div>
-      {/* <div>
-        {`tlr is ${tlr}`}
-      </div> */}
-      <div>
-        {`net is ${network}`}
+
+      <div className="mt-12">
+        <div>
+          Receiver address
+        </div>
+        <div className="mt-2">
+          <input 
+            type="text" 
+            value={receiverAddr}
+            onChange={e => setReceiverAddr(e.target.value)}
+          />
+        </div>
       </div>
-      {/* <div>
-        {`addr is ${walletData.primary_addr}`}
+
+      <div className="mt-12">
+        <div>
+          Current State
+        </div>
+        <div className="mt-2">
+          {subrealmCurrentState}
+        </div>
       </div>
-      <div>
-        {`mnemonic is ${mnemonic}`}
+
+      <div className="mt-12">
+        <div>
+          notification
+        </div>
+        <div className="mt-2">
+          {toNotify}
+        </div>
       </div>
-      <div>
-        {`funding addr is ${mnemonic}`}
-      </div> */}
-      <div>
-        <button onClick={() => testPrikey()}>Test Prikey</button>
+
+      <div className="mt-12">
+        <div>
+          QR Code
+        </div>
+        <div className="mt-2">
+          {qrCode}
+        </div>
       </div>
+
     </div>
   )
 }

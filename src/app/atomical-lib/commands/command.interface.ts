@@ -9,7 +9,7 @@ export enum AtomicalsGetFetchType {
     TX_HISTORY = 'TX_HISTORY'
 }
 export interface CommandInterface {
-    run: () => Promise<CommandResultInterface>;
+    run: (pushInfo: Function) => Promise<CommandResultInterface>;
 }
 
  

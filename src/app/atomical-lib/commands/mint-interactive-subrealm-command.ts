@@ -18,6 +18,7 @@ import { GetRealmInfoCommand } from "./get-subrealm-info-command";
 import { BaseRequestOptions } from "../interfaces/api.interface";
 import { MintInteractiveSubrealmWithRulesCommand } from "./mint-interactive-subrealm-with-rules-command";
 import { checkBaseRequestOptions } from "../utils/atomical-format-helpers";
+
 const tinysecp: TinySecp256k1Interface = require('@bitcoinerlab/secp256k1');
 initEccLib(tinysecp as any);
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
@@ -39,9 +40,13 @@ export class MintInteractiveSubrealmCommand implements CommandInterface {
     this.requestSubRealm = this.requestSubRealm.startsWith('+') ? this.requestSubRealm.substring(1) : this.requestSubRealm;
   }
 
-  async run(): Promise<any> {
+  async run(pushInfo: Function): Promise<any> {
 
     if (this.requestSubRealm.indexOf('.') === -1) {
+      pushInfo({
+        warning: 'Cannot mint for a top level Realm. Must be a name like +name.subname. Use the mint-realm command for a top level Realm',
+        state: 'error'
+      })
       throw 'Cannot mint for a top level Realm. Must be a name like +name.subname. Use the mint-realm command for a top level Realm';
     }
 
@@ -52,6 +57,10 @@ export class MintInteractiveSubrealmCommand implements CommandInterface {
       detectAddressTypeToScripthash(this.address);
       console.log("Initial mint address:", this.address);
     } catch (ex) {
+      pushInfo({
+        warning: 'Error validating initial owner address',
+        state: 'error'
+      })
       console.log('Error validating initial owner address');
       throw ex;
     }
@@ -61,6 +70,10 @@ export class MintInteractiveSubrealmCommand implements CommandInterface {
     console.log('getSubrealmReponse', JSON.stringify(getSubrealmReponse.data, null, 2));
 
     if (getSubrealmReponse.data.atomical_id) {
+      pushInfo({
+        warning: 'Subrealm is already claimed. Choose another Subrealm',
+        state: 'error'
+      })
       return {
         success: false,
         msg: 'Subrealm is already claimed. Choose another Subrealm',
@@ -69,6 +82,10 @@ export class MintInteractiveSubrealmCommand implements CommandInterface {
     }
     // Step 2. Check to make sure the only missing part is the requested subrealm itself
     if (getSubrealmReponse.data.missing_name_parts !== finalSubrealmPart) {
+      pushInfo({
+        warning: 'Subrealm cannot be minted because at least one other realm parent is missing. Mint that realm first if possible.',
+        state: 'error'
+      })
       return {
         success: false,
         msg: 'Subrealm cannot be minted because at least one other realm parent is missing. Mint that realm first if possible.',
@@ -81,6 +98,10 @@ export class MintInteractiveSubrealmCommand implements CommandInterface {
     const getNearestParentRealmCommand = new GetCommand(this.electrumApi, nearestParentAtomicalId, AtomicalsGetFetchType.LOCATION);
     const getNearestParentRealmResponse = await getNearestParentRealmCommand.run();
     if (getNearestParentRealmResponse.success && getNearestParentRealmResponse.data.atomical_id) {
+      pushInfo({
+        warning: 'Error retrieving nearest parent atomical ' + nearestParentAtomicalId,
+        state: 'error'
+      })
       return {
         success: false,
         msg: 'Error retrieving nearest parent atomical ' + nearestParentAtomicalId,
@@ -112,6 +133,7 @@ export class MintInteractiveSubrealmCommand implements CommandInterface {
         }
       }
     } else {
+      pushInfo({ state: 'checking rules'})
       logBanner('DETECTED PARENT REALM IS NOT OWNED BY PROVIDED --OWNER WALLET');
       console.log('Proceeding to mint with the available subrealm minting rules (if available)...')
       const commandMintWithRules = new MintInteractiveSubrealmWithRulesCommand(
@@ -121,7 +143,7 @@ export class MintInteractiveSubrealmCommand implements CommandInterface {
         this.address,
         this.fundingWIF,
         this.options);
-      const commandMintWithRulesResponse = await commandMintWithRules.run();
+      const commandMintWithRulesResponse = await commandMintWithRules.run(pushInfo);
       if (commandMintWithRulesResponse.success) {
         return {
           success: true,

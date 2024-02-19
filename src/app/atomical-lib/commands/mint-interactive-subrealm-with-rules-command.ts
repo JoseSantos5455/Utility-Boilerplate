@@ -29,9 +29,13 @@ export class MintInteractiveSubrealmWithRulesCommand implements CommandInterface
   ) {
     this.options = checkBaseRequestOptions(this.options);
   }
-  async run(): Promise<any> {
+  async run(pushInfo: Function): Promise<any> {
 
     if (this.requestSubrealm.indexOf('.') === -1) {
+      pushInfo({
+        warning: 'Cannot mint for a top level Realm. Must be a name like +name.subname. Use the mint-realm command for a top level Realm',
+        state: 'error'
+      })
       throw 'Cannot mint for a top level Realm. Must be a name like +name.subname. Use the mint-realm command for a top level Realm';
     }
     const realmParts = this.requestSubrealm.split('.');
@@ -41,6 +45,10 @@ export class MintInteractiveSubrealmWithRulesCommand implements CommandInterface
     const getSubrealmCommand = new GetByRealmCommand(this.electrumApi, this.requestSubrealm, AtomicalsGetFetchType.LOCATION, true);
     const getSubrealmReponse = await getSubrealmCommand.run();
     if (getSubrealmReponse.data.atomical_id) {
+      pushInfo({
+        warning: 'Subrealm is already claimed. Choose another Subrealm',
+        state: 'error'
+      })
       return {
         success: false,
         msg: 'Subrealm is already claimed. Choose another Subrealm',
@@ -50,9 +58,17 @@ export class MintInteractiveSubrealmWithRulesCommand implements CommandInterface
     const finalSubrealmSplit = this.requestSubrealm.split('.');
     const finalSubrealm = finalSubrealmSplit[finalSubrealmSplit.length - 1];
     if (!getSubrealmReponse.data.nearest_parent_realm_atomical_id) {
+      pushInfo({
+        warning: 'Nearest parent realm id is not set',
+        state: 'error'
+      })
       throw new Error('Nearest parent realm id is not set')
     }
     if (getSubrealmReponse.data.missing_name_parts !== finalSubrealm) {
+      pushInfo({
+        warning: `Nearest parent realm is not the direct potential parent of the requested Subrealm. Try minting ${getSubrealmReponse.data.found_full_realm_name} first`,
+        state: 'error'
+      })
       throw new Error(`Nearest parent realm is not the direct potential parent of the requested Subrealm. Try minting ${getSubrealmReponse.data.found_full_realm_name} first`)
     }
     const getNearestParentRealmCommand = new GetCommand(this.electrumApi, this.nearestParentAtomicalId, AtomicalsGetFetchType.LOCATION);
@@ -70,11 +86,18 @@ export class MintInteractiveSubrealmWithRulesCommand implements CommandInterface
     console.log('getSubrealmReponse', getSubrealmReponse);
     console.log(`*** We detected that the expected active rules list for the next block (${getSubrealmReponse.data.nearest_parent_realm_subrealm_mint_rules.current_height}) are: ***`)
     console.log(JSON.stringify(getSubrealmReponse.data.nearest_parent_realm_subrealm_mint_rules.current_height_rules, null, 2));
+    pushInfo({
+      state: 'detected rules'
+    })
     let index = 0;
     let matchedAtLeastOneRule = false
 
     if (!getSubrealmReponse.data.nearest_parent_realm_subrealm_mint_rules.current_height_rules ||
       !Object.keys(getSubrealmReponse.data.nearest_parent_realm_subrealm_mint_rules.current_height_rules).length) {
+      pushInfo({
+        warning: 'The requested subrealm does not have any rules for the current height. Aborting...',
+        state: 'error'
+      })
       throw new Error('The requested subrealm does not have any rules for the current height. Aborting...')
     }
     let bitworkc;
@@ -91,10 +114,17 @@ export class MintInteractiveSubrealmWithRulesCommand implements CommandInterface
       } catch (ex) {
         // Technically that means a malformed payment *could* possibly be made and it would work.
         // But it's probably not what either party intended. Therefore warn the user and bow out.
+        pushInfo({
+          warning: 'Realm rule regex is invalid. Contact the owner of the parent realm to tell them to fix it! Unable to continue. Aborting...',
+          state: 'error'
+        })
         console.log('Realm rule regex is invalid. Contact the owner of the parent realm to tell them to fix it! Unable to continue. Aborting...');
         throw ex;
       }
       if (regexPattern.test(finalSubrealmPart)) {
+        pushInfo({
+          state: 'rule matched'
+        })
         console.log(`The subrealm name of ${finalSubrealmPart} matches the rule entry at index ${index}:`);
         console.log('---------------------------------------------------------------------------------------');
         console.log('Pattern: ', modifiedPattern)
@@ -106,27 +136,50 @@ export class MintInteractiveSubrealmWithRulesCommand implements CommandInterface
           const priceRule = outputRulesMap[propScript]['v']
           const priceRuleTokenType = outputRulesMap[propScript]['id']
           if (priceRule < 0) {
+            pushInfo({
+              warning: 'Aborting minting because price is less than 0',
+              state: 'error'
+            })
             throw new Error('Aborting minting because price is less than 0')
           }
           if (priceRule > 100000000) {
+            pushInfo({
+              warning: 'Aborting minting because price is greater than 1',
+              state: 'error'
+            })
             throw new Error('Aborting minting because price is greater than 1')
           }
           console.log('Rule entry: ', price_point);
           if (isNaN(priceRule)) {
+            pushInfo({
+              warning: 'Price is not a valid number',
+              state: 'error'
+            })
             throw new Error('Price is not a valid number')
           }
           
           if (priceRuleTokenType && !isAtomicalId(priceRuleTokenType)) {
+            pushInfo({
+              warning: 'id parameter must be a compact atomical id: ' + priceRuleTokenType,
+              state: 'error'
+            })
             throw new Error('id parameter must be a compact atomical id: ' + priceRuleTokenType);
           }
 
           try {
             const result = detectScriptToAddressType(propScript);
+            pushInfo({
+              state: 'payment address detected:' + result
+            })
             console.log('Detected payment address: ', result)
             console.log('---------------------------------------------------------------------------------------');
           } catch (ex) {
             // Technically that means a malformed payment *could* possibly be made and it would work.
             // But it's probably not what either party intended. Therefore warn the user and bow out.
+            pushInfo({
+              state: 'error',
+              warning: 'Realm rule output format is not a valid address script. Aborting...'
+            })
             console.log('Realm rule output format is not a valid address script. Aborting...');
             throw ex;
           }
@@ -151,6 +204,10 @@ export class MintInteractiveSubrealmWithRulesCommand implements CommandInterface
     }
 
     if (!matchedAtLeastOneRule) {
+      pushInfo({
+        state: 'error',
+        warning: 'The requested subrealm does not match any rule entry! Choose a different subrealm name. Aborting...'
+      })
       throw new Error('The requested subrealm does not match any rule entry! Choose a different subrealm name. Aborting...')
     }
 
@@ -193,7 +250,7 @@ export class MintInteractiveSubrealmWithRulesCommand implements CommandInterface
       address: this.address,
       value: this.options.satsoutput as any || 1000
     });
-    const result = await atomicalBuilder.start(this.fundingWIF);
+    const result = await atomicalBuilder.start(this.fundingWIF, pushInfo);
     return {
       success: true,
       data: result
