@@ -120,13 +120,17 @@ export const WalletConnect = () => {
 
   const handleSwitchChange = async (checked: any) => {
     try {
-      if (await isWizzConnected) {
+      const isWizz = walletData.connected && walletData.type === 'wizz' && await isWizzConnected()
+      if (isWizz) {
         await window.wizz.switchNetwork(checked ? "livenet" : "testnet");
         setNetwork(checked ? 'bitcoin' : 'testnet');
       }
-      else if (await isUnisatConnected) {
-        await window.unisat.switchNetwork(checked ? "livenet" : "testnet");
-        setNetwork(checked ? 'bitcoin' : 'testnet');
+      else {
+        const isUnisat = walletData.connected && walletData.type === 'unisat' && await isWizzConnected()
+        if (isUnisat) {
+          await window.unisat.switchNetwork(checked ? "livenet" : "testnet");
+          setNetwork(checked ? 'bitcoin' : 'testnet');
+        }
       }
     } catch (e) {
       console.log(e);
