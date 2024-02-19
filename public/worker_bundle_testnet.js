@@ -26240,9 +26240,7 @@ const { networks, initEccLib, Psbt, script, payments, crypto } = require("bitcoi
 const { ECPairFactory } = require("ecpair");
 const cbor = require('borc');
 const ecc = require('@bitcoinerlab/secp256k1');
-
-// you should configure this according to your network: testnet/bitcoin
-const NETWORK = networks.bitcoin;
+const NETWORK = networks.testnet;
 
 initEccLib(ecc);
 const ECPair = ECPairFactory(ecc);
@@ -26424,14 +26422,14 @@ if (self) {
 
                 sequence = seqStart;
             }
-            // if (sequence % 10000 == 0) {
-            //     console.log(
-            //         "Started mining for sequence: " +
-            //             sequence +
-            //             " - " +
-            //             Math.min(sequence + 10000, MAX_SEQUENCE)
-            //     );
-            // }
+            if (sequence % 10000 == 0) {
+                console.log(
+                    "Started mining for sequence: " +
+                        sequence +
+                        " - " +
+                        Math.min(sequence + 10000, MAX_SEQUENCE)
+                );
+            }
 
             // Create a new PSBT (Partially Signed Bitcoin Transaction)
             let psbtStart = new Psbt({ network: NETWORK });
@@ -26472,14 +26470,14 @@ if (self) {
                 )
             ) {
                 // Valid proof of work found, log success message
-                // console.log(
-                //     console.log(prelimTx.getId(), ` sequence: (${sequence})`)
-                // );
-                // console.log(
-                //     "\nBitwork matches commit txid! ",
-                //     prelimTx.getId(),
-                //     `@ time: ${Math.floor(Date.now() / 1000)}`
-                // );
+                console.log(
+                    console.log(prelimTx.getId(), ` sequence: (${sequence})`)
+                );
+                console.log(
+                    "\nBitwork matches commit txid! ",
+                    prelimTx.getId(),
+                    `@ time: ${Math.floor(Date.now() / 1000)}`
+                );
 
                 finalCopyData = copiedData;
                 finalPrelimTx = prelimTx;
@@ -26492,11 +26490,11 @@ if (self) {
 
             if (generated % 10000 === 0) {
                 const hashRate = ((generated - lastGenerated) / (Date.now() - lastTime)) * 1000;
-                // console.log(
-                //     'Hash rate:',
-                //     hashRate.toFixed(2),
-                //     'Op/s ',
-                // );
+                console.log(
+                    'Hash rate:',
+                    hashRate.toFixed(2),
+                    'Op/s ',
+                );
                 lastTime = Date.now();
                 lastGenerated = generated;
                 await immediate();
@@ -26504,13 +26502,13 @@ if (self) {
         } while (workerPerformBitworkForCommitTx);
 
         // send a result or message back to the main thread
-        // console.log(
-        //     "Got one finalCopyData: " + JSON.stringify(finalCopyData)
-        // );
-        // console.log(
-        //     "Got one finalPrelimTx: " + finalPrelimTx.toString()
-        // );
-        // console.log("Got one finalSequence: " + JSON.stringify(sequence));
+        console.log(
+            "Got one finalCopyData: " + JSON.stringify(finalCopyData)
+        );
+        console.log(
+            "Got one finalPrelimTx: " + finalPrelimTx.toString()
+        );
+        console.log("Got one finalSequence: " + JSON.stringify(sequence));
 
         self.postMessage({
             finalCopyData,
