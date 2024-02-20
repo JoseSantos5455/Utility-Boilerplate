@@ -10,10 +10,8 @@ type AppContextType = {
   setWIF: Function,
   subrealmCurrentState: string,
   toNotify: string,
-  qrCode: string,
   setSubrealmCurrentState: Function,
   setToNotify: Function,
-  setQrCode: Function
 }
 
 const AppContextDefaultValues: AppContextType = {
@@ -26,10 +24,8 @@ const AppContextDefaultValues: AppContextType = {
   setWIF: (f: any) => f,
   subrealmCurrentState: '',
   toNotify: '',
-  qrCode: '',
   setSubrealmCurrentState: (f: any) => f,
   setToNotify: (f: any) => f,
-  setQrCode: (f: any) => f,
 }
 
 export const AppContext = createContext<AppContextType>(AppContextDefaultValues)
@@ -40,16 +36,15 @@ export default function AppContextProvider({
   children: React.ReactNode;
 }>) {
 
-  const [network, setNetwork] = useState('testnet')
+  const [network, setNetwork] = useState('mainnet')
   const [tlr, ] = useState(process.env.NEXT_PUBLIC_TOP_LEVEL_REALM || 'bullrun')
   const [mnemonic, setMnemonic] = useState('')
   const [WIF, setWIF] = useState('')
   const [subrealmCurrentState, setSubrealmCurrentState] = useState('ready')
   const [toNotify, setToNotify] = useState('')
-  const [qrCode, setQrCode] = useState('')
 
   return (
-    <AppContext.Provider value={{ network, setNetwork, tlr, mnemonic, setMnemonic, WIF, setWIF, subrealmCurrentState, toNotify, qrCode, setSubrealmCurrentState, setToNotify, setQrCode }}>
+    <AppContext.Provider value={{ network, setNetwork, tlr, mnemonic, setMnemonic, WIF, setWIF, subrealmCurrentState, toNotify, setSubrealmCurrentState, setToNotify }}>
       {children}
     </AppContext.Provider>
   )

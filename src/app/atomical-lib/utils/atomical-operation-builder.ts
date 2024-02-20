@@ -612,7 +612,7 @@ export class AtomicalOperationBuilder {
             const response: { result: any } = await this.options.electrumApi.estimateFee(1);
             let estimatedSatsByte = Math.ceil((response.result / 1000) * 100000000);
             if (isNaN(estimatedSatsByte)) {
-                estimatedSatsByte = 200; // Something went wrong, just default to 30 bytes sat estimate
+                estimatedSatsByte = 30; // Something went wrong, just default to 30 bytes sat estimate
                 // console.log('satsbyte fee query failed, defaulted to: ', estimatedSatsByte)
             } else {
                 this.options.satsbyte = estimatedSatsByte; 
@@ -668,13 +668,19 @@ export class AtomicalOperationBuilder {
         if (performBitworkForCommitTx) {
             // Attempt to get funding UTXO information
             pushInfo({
-                state: 'awaiting funding UTXO'
+                state: 'awaiting funding UTXO',
+                warning: `waiting ${fees.commitAndRevealFeePlusOutputs} sats to ${fundingKeypair.address}`,
+                qrcode: fundingKeypair.address
             })
             const fundingUtxo = await getFundingUtxo(
                 this.options.electrumApi,
                 fundingKeypair.address,
                 fees.commitAndRevealFeePlusOutputs
             );
+            pushInfo({
+                state: 'detected #1 funding UTXO',
+                qrcode: ''
+            })
 
             // Log bitwork info if available
             printBitworkLog(this.bitworkInfoCommit as any, true);
@@ -785,10 +791,7 @@ export class AtomicalOperationBuilder {
                             interTx
                         );
 
-                        pushInfo({
-                            state: 'broadcasting tx'
-                        })
-                        if (!this.broadcastWithRetries(rawtx)) {
+                        if (!(await this.broadcastWithRetries(rawtx))) {
                             console.log("Error sending", interTx.getId(), rawtx);
                             pushInfo({
                                 state: 'error',
@@ -799,10 +802,6 @@ export class AtomicalOperationBuilder {
                                     interTx.getId()
                             );
                         } else {
-                            pushInfo({
-                                state: 'sent tx',
-                                warning: 'Success sent tx'
-                            })    
                             console.log("Success sent tx: ", interTx.getId());
                         }
 
@@ -859,15 +858,13 @@ export class AtomicalOperationBuilder {
             }
 
             pushInfo({
-                state: 'Stay calm and grab a drink! Miner workers have started mining...'
+                state: 'Stay calm and grab a drink! Miner workers have started mining...',
+                qrcode: ''
             })
             console.log("Stay calm and grab a drink! Miner workers have started mining... ");
 
             // Await results from workers
             const messageFromWorker = await workerPromise;
-            pushInfo({
-                state: 'Workers have completed their tasks.'
-            })
             console.log("Workers have completed their tasks.");
         } else {
             scriptP2TR = mockBaseCommitForFeeCalculation.scriptP2TR;
@@ -886,6 +883,10 @@ export class AtomicalOperationBuilder {
             commitMinedWithBitwork,
             5
         );
+        pushInfo({
+            state: 'detected #2 funding UTXO',
+            qrcode: ''
+        })
         commitTxid = utxoOfCommitAddress.txid;
         atomicalId = commitTxid + "i0"; // Atomicals are always minted at the 0'th output
 
@@ -1065,6 +1066,9 @@ export class AtomicalOperationBuilder {
                 console.log("\nBroadcasting tx...", revealTx.getId());
                 const interTx = psbt.extractTransaction();
                 const rawtx = interTx.toHex();
+                pushInfo({
+                    state: 'broadcasting tx',
+                })
                 if (!(await this.broadcastWithRetries(rawtx))) {
                     console.log("Error sending", revealTx.getId(), rawtx);
                     throw new Error(
@@ -1073,6 +1077,10 @@ export class AtomicalOperationBuilder {
                 } else {
                     console.log("Success sent tx: ", revealTx.getId());
                 }
+                pushInfo({
+                    state: 'sent tx',
+                    warning: 'Success sent tx'
+                })    
                 revealTxid = interTx.getId();
                 performBitworkForRevealTx = false; // Done
             }

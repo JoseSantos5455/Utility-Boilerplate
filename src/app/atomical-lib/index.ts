@@ -53,7 +53,7 @@ import { GetRealmInfoCommand } from "./commands/get-subrealm-info-command";
 // import { SummaryContainersCommand } from "./commands/summary-containers-command";
 // import { SummaryRealmsCommand } from "./commands/summary-realms-command";
 // import { SummaryTickersCommand } from "./commands/summary-tickers-command";
-// import { PendingSubrealmsCommand } from "./commands/pending-subrealms-command";
+import { PendingSubrealmsCommand } from "./commands/pending-subrealms-command";
 // import { SetRelationInteractiveCommand } from "./commands/set-relation-interactive-command";
 // import { MintInteractiveDatCommand } from "./commands/mint-interactive-dat-command";
 // import { MergeInteractiveUtxosCommand } from "./commands/merge-interactive-utxos";
@@ -346,7 +346,9 @@ export class Atomicals implements APIInterface {
     try {
       await this.electrumApi.open();
       const command: CommandInterface = new MintInteractiveSubrealmCommand(this.electrumApi, options, requestSubRealm, address, WIF, owner);
-      return await command.run();
+      // temporary
+      // return await command.run();
+      return await command.run((f: any) => f);
     } catch (error: any) {
       return {
         success: false,
@@ -1194,23 +1196,23 @@ export class Atomicals implements APIInterface {
 //     }
 //   }
 
-//   async pendingSubrealms(options: BaseRequestOptions, address: string, funding: IWalletRecord, satsbyte: number, display = false, keepElectrumAlive = false): Promise<CommandResultInterface> {
-//     try {
-//       await this.electrumApi.open();
-//       const command: CommandInterface = new PendingSubrealmsCommand(this.electrumApi, options, address, funding.WIF, satsbyte, display);
-//       return await command.run();
-//     } catch (error: any) {
-//       return {
-//         success: false,
-//         message: error.toString(),
-//         error
-//       }
-//     } finally {
-//       if (!keepElectrumAlive) {
-//         this.electrumApi.close();
-//       }
-//     }
-//   }
+  // async pendingSubrealms(options: BaseRequestOptions, address: string, funding: IWalletRecord, satsbyte: number, display = false, keepElectrumAlive = false): Promise<CommandResultInterface> {
+  //   try {
+  //     await this.electrumApi.open();
+  //     const command: CommandInterface = new PendingSubrealmsCommand(this.electrumApi, options, address, funding.WIF, satsbyte, display);
+  //     return await command.run();
+  //   } catch (error: any) {
+  //     return {
+  //       success: false,
+  //       message: error.toString(),
+  //       error
+  //     }
+  //   } finally {
+  //     if (!keepElectrumAlive) {
+  //       this.electrumApi.close();
+  //     }
+  //   }
+  // }
 
 //   async summarySubrealms(address: string, filter?: string, keepElectrumAlive = false): Promise<CommandResultInterface> {
 //     try {
