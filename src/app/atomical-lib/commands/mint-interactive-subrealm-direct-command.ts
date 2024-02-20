@@ -41,7 +41,7 @@ export class MintInteractiveSubrealmDirectCommand implements CommandInterface {
     this.options = checkBaseRequestOptions(this.options)
   }
 
-  async run(): Promise<any> {
+  async run(pushInfo: Function): Promise<any> {
 
     if (this.requestSubrealm.indexOf('.') === -1) {
       throw 'Cannot mint for a top level Realm. Must be a name like +name.subname. Use the mint-realm command for a top level Realm';
@@ -135,7 +135,7 @@ export class MintInteractiveSubrealmDirectCommand implements CommandInterface {
       address: this.address,
       value: this.options.satsoutput as any || 1000
     });
-    const result = await atomicalBuilder.start(this.fundingWIF);
+    const result = await atomicalBuilder.start(this.fundingWIF, pushInfo);
     return {
       success: true,
       data: result

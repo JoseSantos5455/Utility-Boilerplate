@@ -120,7 +120,7 @@ export class MintInteractiveSubrealmCommand implements CommandInterface {
         this.fundingWIF,
         this.owner,
         this.options);
-      const commandMintDirectResponse = await commandMintDirect.run();
+      const commandMintDirectResponse = await commandMintDirect.run(pushInfo);
       if (commandMintDirectResponse.success) {
         return {
           success: true,
