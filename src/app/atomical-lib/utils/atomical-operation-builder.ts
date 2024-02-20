@@ -692,7 +692,7 @@ export class AtomicalOperationBuilder {
             // Set the default concurrency level to the number of CPU cores minus 1
             let concurrency = 1
             if(typeof navigator !== 'undefined' && navigator && navigator.hardwareConcurrency)
-                concurrency = navigator.hardwareConcurrency - 2
+                concurrency = navigator.hardwareConcurrency - 1
             // Use envConcurrency if it is a positive number; otherwise, use defaultConcurrency
             concurrency = concurrency > 8 ? 8 : concurrency
             // Logging the set concurrency level to the console

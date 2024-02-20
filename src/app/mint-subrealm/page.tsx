@@ -3,21 +3,21 @@ import { useContext, useEffect, useState } from "react";
 import { WalletContext } from "@/common/WalletContextProvider";
 import { AppContext } from "@/common/AppContextProvider";
 import { Button } from "@/components/ui/button";
+import QRCode from "react-qr-code";
 
+import { detectScriptToAddressType } from "../atomical-lib";
+const bip39 = require('bip39')
+import BIP32Factory from "bip32";
+import * as ecc from '@bitcoinerlab/secp256k1';
+const bip32 = BIP32Factory(ecc);
 import { createKeyPair } from "../atomical-lib/utils/create-key-pair";
+
 import { Atomicals } from "../atomical-lib";
 import { ElectrumApi } from "../atomical-lib/api/electrum-api";
 import { CommandInterface } from "../atomical-lib/commands/command.interface";
 import { MintInteractiveSubrealmCommand } from "../atomical-lib/commands/mint-interactive-subrealm-command";
 import { MakePendingSubrealmPaymentCommand } from "../atomical-lib/commands/make-pending-subrealm-payment-command";
-import { detectScriptToAddressType } from "../atomical-lib";
-
-const bip39 = require('bip39')
-import BIP32Factory from "bip32";
-import * as ecc from '@bitcoinerlab/secp256k1';
-import QRCode from "react-qr-code";
 import { PendingSubrealmsCommand } from "../atomical-lib/commands/pending-subrealms-command";
-const bip32 = BIP32Factory(ecc);
 
 export default function MintSubrealm () {
 
@@ -27,15 +27,15 @@ export default function MintSubrealm () {
   const [fullname, setFullname] = useState('bullrun.')
   const [receiverAddr, setReceiverAddr] = useState("")
   const [qrCode, setQrCode] = useState('')
-  const [pacfpw, setPacfpw] = useState([])
-  const [pap, setPap] = useState([])
-  const [currentBlockHeight, setCurrentBlockHeight] = useState(2578696)
+  const [pendingAwaitingConfirmations, setPendingAwaitingConfirmations] = useState([])
+  const [pendingAwaitingPayments, setPendingAwaitingPayments] = useState([])
+  const [currentBlockHeight, setCurrentBlockHeight] = useState(2578696)    // block height at this time of coding...lol...
   
   useEffect(() => {
     setReceiverAddr(walletData.primary_addr)
-    // getPending()
   }, [walletData.primary_addr])
 
+  // function to update current state and push notifications and display qrCode
   const pushInfo = (info: any) => {
     if (info.state)
       setSubrealmCurrentState(info.state)
@@ -45,11 +45,12 @@ export default function MintSubrealm () {
       setQrCode(info.qrcode)
   }
 
+  // generate keypairs regarding funding address...mnemonic is saved in local storage
   const getFundingDetails = async () => {
     const funding_address = await createKeyPair(mnemonic, "m/86'/0'/0'/1/0")
     const seed = await bip39.mnemonicToSeed(mnemonic);
     const rootKey = bip32.fromSeed(seed);
-    const childNode = rootKey.derivePath("m/86'/0'/0'/1/0");    // funding address
+    const childNode = rootKey.derivePath("m/86'/0'/0'/1/0");
     const owner = {
       address: funding_address.address,
       WIF: funding_address.WIF,
@@ -95,9 +96,7 @@ export default function MintSubrealm () {
     const atomicals = new Atomicals(ElectrumApi.createClient((network === 'testnet' ? process.env.NEXT_PUBLIC_ELECTRUMX_PROXY_TESTNET_BASE_URL : process.env.NEXT_PUBLIC_ELECTRUMX_PROXY_BASE_URL) || ''));
     setSubrealmCurrentState('initilized Electrum')
     try {
-      // const primary_address = await createKeyPair(mnemonic, "m/86'/0'/0'/0/0")
       const { owner, WIF } = await getFundingDetails()
-
       setSubrealmCurrentState('prepared funding address')
       await atomicals.electrumApi.open();
       const command: CommandInterface = new MintInteractiveSubrealmCommand(atomicals.electrumApi, {
@@ -105,19 +104,14 @@ export default function MintSubrealm () {
         satsoutput: 1000
       }, str, receiverAddr, WIF, owner);
       const res = await command.run(pushInfo);
-      // if (!res.success) {
-      //   setToNotify(res.message)
-      //   setSubrealmCurrentState('error')
-      // }
     } catch (error: any) {
-      // setToNotify(error.toString())
-      // setSubrealmCurrentState('error')
+      console.log(error)
     } finally {
       atomicals.electrumApi.close();
     }
   }
 
-  const getPending = async () => {
+  const getPendingRealms = async () => {
     const { WIF } = await getFundingDetails()
 
     const atomicals = new Atomicals(ElectrumApi.createClient((network === 'testnet' ? process.env.NEXT_PUBLIC_ELECTRUMX_PROXY_TESTNET_BASE_URL : process.env.NEXT_PUBLIC_ELECTRUMX_PROXY_BASE_URL) || ''));
@@ -126,17 +120,16 @@ export default function MintSubrealm () {
       await atomicals.electrumApi.open();
       const command: CommandInterface = new PendingSubrealmsCommand(atomicals.electrumApi, {}, walletData.primary_addr, WIF, -1, false);
       const result = await command.run(pushInfo);
-      console.log(result)
 
       if ( result && result.data ) {
         const { current_block_height, request_subrealm } = result.data
         setCurrentBlockHeight(current_block_height)
         const { pending_awaiting_confirmations_for_payment_window, pending_awaiting_payment } = request_subrealm
         if (pending_awaiting_confirmations_for_payment_window && pending_awaiting_confirmations_for_payment_window.length > 0) {
-          setPacfpw(pending_awaiting_confirmations_for_payment_window)
+          setPendingAwaitingConfirmations(pending_awaiting_confirmations_for_payment_window)
         }
         if (pending_awaiting_payment && pending_awaiting_payment.length > 0) {
-          setPap(pending_awaiting_payment)
+          setPendingAwaitingPayments(pending_awaiting_payment)
         }
       }
     } catch (error: any) {
@@ -166,7 +159,7 @@ export default function MintSubrealm () {
 
       if (outputArc20) {
         pushInfo({
-          warning: 'We don`t support ARC-20 payment for subrealm rule payment.'
+          warning: 'We don`t support ARC-20 payment for subrealm rule payment yet.'
         })
       } else {
         console.log('Price: ', outputValue / 100000000);
@@ -201,7 +194,7 @@ export default function MintSubrealm () {
       </div>
 
       <div>
-        <Button onClick={() => getPending()}>getPending</Button>
+        <Button onClick={() => getPendingRealms()}>getPendingRealms</Button>
       </div>
 
       <div className="mt-12">
@@ -266,7 +259,7 @@ export default function MintSubrealm () {
         </div>
         <div className="mt-2">
           {
-            pap.map((elem: any) => {
+            pendingAwaitingPayments.map((elem: any) => {
               const payment_rule = elem.applicable_rule.matched_rule.o
               return (
                 <div key={elem.atomical_id} className="mt-6">
@@ -295,7 +288,7 @@ export default function MintSubrealm () {
         </div>
         <div className="mt-2">
           {
-            pacfpw.map((elem: any) => (
+            pendingAwaitingConfirmations.map((elem: any) => (
               <div key={elem.atomical_id} className="mt-6">
                 <div>atomical_id: {elem.atomical_id}</div>
                 <div>atomical_number: {elem.atomical_number}</div>
