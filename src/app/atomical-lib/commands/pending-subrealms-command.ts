@@ -135,9 +135,7 @@ export class PendingSubrealmsCommand implements CommandInterface {
 
     // this.makePrettyMenu(statusReturn);
 
-
-    const { pending_awaiting_payment } = statusReturn.request_subrealm
-    // console.log(pending_awaiting_payment)
+    const { pending_awaiting_payment = [], pending_awaiting_confirmations_for_payment_window = [] } = statusReturn.request_subrealm
 
     for (let i = 0; i < pending_awaiting_payment.length; i++) {
       const element = pending_awaiting_payment[i];
