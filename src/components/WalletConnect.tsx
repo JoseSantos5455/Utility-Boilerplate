@@ -89,6 +89,8 @@ export const WalletConnect = () => {
   const getWizzAccounts = async () => {
     if (typeof window !== 'undefined' && typeof window.wizz !== 'undefined') {
       const accounts: string[] = await window.wizz.getAccounts()
+      if ( accounts && accounts.length > 0 && accounts[0].startsWith('tb') )
+        setNetwork('testnet')
       return accounts
     }
     return []
@@ -97,6 +99,8 @@ export const WalletConnect = () => {
   const getUnisatAccounts = async () => {
     if (typeof window !== 'undefined' && typeof window.unisat !== 'undefined') {
       const accounts: string[] = await window.unisat.getAccounts()
+      if ( accounts && accounts.length > 0 && accounts[0].startsWith('tb') )
+        setNetwork('testnet')
       return accounts
     }
     return []
@@ -123,11 +127,13 @@ export const WalletConnect = () => {
       const isWizz = walletData.connected && walletData.type === 'wizz' && await isWizzConnected()
       if (isWizz) {
         await window.wizz.switchNetwork(checked ? "livenet" : "testnet");
+        await getWizzAccounts()
       }
       else {
         const isUnisat = walletData.connected && walletData.type === 'unisat' && await isUnisatConnected()
         if (isUnisat) {
           await window.unisat.switchNetwork(checked ? "livenet" : "testnet");
+          await getUnisatAccounts()
         }
       }
       setNetwork(checked ? 'bitcoin' : 'testnet');

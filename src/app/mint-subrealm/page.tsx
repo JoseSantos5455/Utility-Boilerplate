@@ -122,6 +122,8 @@ export default function MintSubrealm () {
       const command: CommandInterface = new PendingSubrealmsCommand(atomicals.electrumApi, {}, receiverAddr, WIF, -1, false);
       const result = await command.run(pushInfo);
 
+      console.log(result)
+
       if ( result && result.data ) {
         const { current_block_height, request_subrealm } = result.data
         setCurrentBlockHeight(current_block_height)
