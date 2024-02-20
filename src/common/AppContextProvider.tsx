@@ -37,7 +37,8 @@ export default function AppContextProvider({
 }>) {
 
   const [network, setNetwork] = useState('bitcoin')
-  const [tlr, ] = useState(process.env.NEXT_PUBLIC_TOP_LEVEL_REALM || 'bullrun')
+  // const [tlr, ] = useState(process.env.NEXT_PUBLIC_TOP_LEVEL_REALM || 'bullrun')
+  const [tlr, ] = useState('ibet')
   const [mnemonic, setMnemonic] = useState('')
   const [WIF, setWIF] = useState('')
   const [subrealmCurrentState, setSubrealmCurrentState] = useState('ready')
