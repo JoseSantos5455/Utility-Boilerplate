@@ -123,15 +123,14 @@ export const WalletConnect = () => {
       const isWizz = walletData.connected && walletData.type === 'wizz' && await isWizzConnected()
       if (isWizz) {
         await window.wizz.switchNetwork(checked ? "livenet" : "testnet");
-        setNetwork(checked ? 'bitcoin' : 'testnet');
       }
       else {
         const isUnisat = walletData.connected && walletData.type === 'unisat' && await isUnisatConnected()
         if (isUnisat) {
           await window.unisat.switchNetwork(checked ? "livenet" : "testnet");
-          setNetwork(checked ? 'bitcoin' : 'testnet');
         }
       }
+      setNetwork(checked ? 'bitcoin' : 'testnet');
     } catch (e) {
       console.log(e);
     }

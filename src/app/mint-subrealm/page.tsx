@@ -32,7 +32,8 @@ export default function MintSubrealm () {
   const [currentBlockHeight, setCurrentBlockHeight] = useState(2578696)    // block height at this time of coding...lol...
   
   useEffect(() => {
-    setReceiverAddr(walletData.primary_addr)
+    if (!receiverAddr)
+      setReceiverAddr(walletData.primary_addr)
   }, [walletData.primary_addr])
 
   // function to update current state and push notifications and display qrCode
@@ -118,7 +119,7 @@ export default function MintSubrealm () {
     
     try {
       await atomicals.electrumApi.open();
-      const command: CommandInterface = new PendingSubrealmsCommand(atomicals.electrumApi, {}, walletData.primary_addr, WIF, -1, false);
+      const command: CommandInterface = new PendingSubrealmsCommand(atomicals.electrumApi, {}, receiverAddr, WIF, -1, false);
       const result = await command.run(pushInfo);
 
       if ( result && result.data ) {
