@@ -1,4 +1,7 @@
 import { useState, createContext } from "react"
+import { Toaster } from "@/components/ui/toaster"
+import { toast } from "@/components/ui/use-toast"
+import { cn } from "@/lib/utils"
 
 type AppContextType = {
   network: string,
@@ -8,10 +11,8 @@ type AppContextType = {
   setMnemonic: Function,
   WIF: string,
   setWIF: Function,
-  subrealmCurrentState: string,
-  toNotify: string,
-  setSubrealmCurrentState: Function,
-  setToNotify: Function,
+  showError: Function,
+  showAlert: Function
 }
 
 const AppContextDefaultValues: AppContextType = {
@@ -22,10 +23,8 @@ const AppContextDefaultValues: AppContextType = {
   setMnemonic: (f: any) => f,
   WIF: '',
   setWIF: (f: any) => f,
-  subrealmCurrentState: '',
-  toNotify: '',
-  setSubrealmCurrentState: (f: any) => f,
-  setToNotify: (f: any) => f,
+  showError: (f: any) => f,
+  showAlert: (f: any) => f,
 }
 
 export const AppContext = createContext<AppContextType>(AppContextDefaultValues)
@@ -41,12 +40,33 @@ export default function AppContextProvider({
   const [tlr, ] = useState('ibet')
   const [mnemonic, setMnemonic] = useState('')
   const [WIF, setWIF] = useState('')
-  const [subrealmCurrentState, setSubrealmCurrentState] = useState('ready')
-  const [toNotify, setToNotify] = useState('')
+
+  const showError = (error_str: string) => {
+    toast({
+      className: cn(
+        'top-0 right-0 flex fixed md:max-w-[320px] md:top-4 md:right-4'
+      ),
+      variant: 'destructive',
+      title: 'Oops! Something went wrong...',
+      description: `${error_str}`
+    })
+  }
+
+  const showAlert = (error_str: string) => {
+    toast({
+      className: cn(
+        'top-0 right-0 flex fixed md:max-w-[320px] md:top-4 md:right-4'
+      ),
+      variant: 'default',
+      title: 'Info',
+      description: `${error_str}`
+    })
+  }
 
   return (
-    <AppContext.Provider value={{ network, setNetwork, tlr, mnemonic, setMnemonic, WIF, setWIF, subrealmCurrentState, toNotify, setSubrealmCurrentState, setToNotify }}>
+    <AppContext.Provider value={{ network, setNetwork, tlr, mnemonic, setMnemonic, WIF, setWIF, showError, showAlert }}>
       {children}
+      <Toaster />
     </AppContext.Provider>
   )
 }

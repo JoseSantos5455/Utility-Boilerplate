@@ -59,7 +59,6 @@ export default function Check() {
         {pageState === 'loading' ? (
           <div>
             <Progress className="w-40" value={progress} />
-
           </div>
         ) : !atomicalId ? (
           <div className="text-green-500">This is still available !!!</div>

@@ -82,9 +82,21 @@ export class PendingSubrealmsCommand implements CommandInterface {
 
     return false;
   }
-  async run(): Promise<any> {
+  async run(pushInfo: Function): Promise<any> {
     const keypairFunding = ECPair.fromWIF(this.fundingWIF);
-    const { scripthash } = detectAddressTypeToScripthash(this.address);
+    let scripthash
+    try {
+      scripthash = detectAddressTypeToScripthash(this.address).scripthash;      
+    } catch (error) {
+      pushInfo({
+        'pending-state': 'error',
+        'pending-error': 'Error validating receiver address.'
+      })
+      return {
+        success: false,
+        data: {}
+      }
+    }
     let res = await this.electrumApi.atomicalsByScripthash(scripthash, true);
     const statusMap: PendingSummaryItemMapInterface = {}
     const current_block_height = res.global.height;
@@ -132,8 +144,6 @@ export class PendingSubrealmsCommand implements CommandInterface {
       current_block_height,
       ...statusMap,
     };
-
-    // this.makePrettyMenu(statusReturn);
 
     const { pending_awaiting_payment = [], pending_awaiting_confirmations_for_payment_window = [] } = statusReturn.request_subrealm
 

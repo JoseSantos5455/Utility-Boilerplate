@@ -668,8 +668,11 @@ export class AtomicalOperationBuilder {
         if (performBitworkForCommitTx) {
             // Attempt to get funding UTXO information
             pushInfo({
-                state: 'awaiting funding UTXO',
-                warning: `waiting ${fees.commitAndRevealFeePlusOutputs} sats to ${fundingKeypair.address}`,
+                state: 'awaiting-funding-utxo',
+                data: {
+                    fees: fees.commitAndRevealFeePlusOutputs,
+                    address: fundingKeypair.address
+                },
                 qrcode: fundingKeypair.address
             })
             const fundingUtxo = await getFundingUtxo(
@@ -678,7 +681,7 @@ export class AtomicalOperationBuilder {
                 fees.commitAndRevealFeePlusOutputs
             );
             pushInfo({
-                state: 'detected #1 funding UTXO',
+                state: 'detected-funding-utxo',
                 qrcode: ''
             })
 
@@ -690,13 +693,19 @@ export class AtomicalOperationBuilder {
 
             // temporary
             // Set the default concurrency level to the number of CPU cores minus 1
-            let concurrency = 1
+            let concurrency = 4
             if(typeof navigator !== 'undefined' && navigator && navigator.hardwareConcurrency)
                 concurrency = navigator.hardwareConcurrency - 1
             // Use envConcurrency if it is a positive number; otherwise, use defaultConcurrency
             concurrency = concurrency > 8 ? 8 : concurrency
             // Logging the set concurrency level to the console
-            console.log(`Concurrency set to: ${concurrency}`);
+            pushInfo({
+                state: 'concurrency-set',
+                data: {
+                    concurrency
+                }
+            })
+            // console.log(`Concurrency set to: ${concurrency}`);
 
             const workerOptions = this.options;
             const workerBitworkInfoCommit = this.bitworkInfoCommit;
@@ -730,9 +739,9 @@ export class AtomicalOperationBuilder {
                 // Handle messages from workers
                 worker.addEventListener("message", async (event) => {
                     const message: WorkerOut = event.data
-                    console.log("Solution found, try composing the transaction...");
+                    // console.log("Solution found, try composing the transaction...");
                     pushInfo({
-                        state: 'bitwork mined !!! composing tx !'
+                        state: 'mined-bitwork'
                     })
         
                     if (!isWorkDone) {
@@ -792,10 +801,10 @@ export class AtomicalOperationBuilder {
                         );
 
                         if (!(await this.broadcastWithRetries(rawtx))) {
-                            console.log("Error sending", interTx.getId(), rawtx);
+                            // console.log("Error sending", interTx.getId(), rawtx);
                             pushInfo({
                                 state: 'error',
-                                warning: "Unable to broadcast commit transaction after attempts: " + interTx.getId()
+                                warning: "Unable to broadcast commit transaction."
                             })    
                             throw new Error(
                                 "Unable to broadcast commit transaction after attempts: " +
@@ -858,14 +867,13 @@ export class AtomicalOperationBuilder {
             }
 
             pushInfo({
-                state: 'Stay calm and grab a drink! Miner workers have started mining...',
-                qrcode: ''
+                state: 'mining-started',
             })
-            console.log("Stay calm and grab a drink! Miner workers have started mining... ");
+            // console.log("Stay calm and grab a drink! Miner workers have started mining... ");
 
             // Await results from workers
             const messageFromWorker = await workerPromise;
-            console.log("Workers have completed their tasks.");
+            // console.log("Workers have completed their tasks.");
         } else {
             scriptP2TR = mockBaseCommitForFeeCalculation.scriptP2TR;
             hashLockP2TR = mockBaseCommitForFeeCalculation.hashLockP2TR;
@@ -884,7 +892,7 @@ export class AtomicalOperationBuilder {
             5
         );
         pushInfo({
-            state: 'detected #2 funding UTXO',
+            state: 'detected-funding-utxo',
             qrcode: ''
         })
         commitTxid = utxoOfCommitAddress.txid;
@@ -1067,7 +1075,7 @@ export class AtomicalOperationBuilder {
                 const interTx = psbt.extractTransaction();
                 const rawtx = interTx.toHex();
                 pushInfo({
-                    state: 'broadcasting tx',
+                    state: 'broadcasting-tx',
                 })
                 if (!(await this.broadcastWithRetries(rawtx))) {
                     console.log("Error sending", revealTx.getId(), rawtx);
@@ -1078,9 +1086,9 @@ export class AtomicalOperationBuilder {
                     console.log("Success sent tx: ", revealTx.getId());
                 }
                 pushInfo({
-                    state: 'sent tx',
-                    warning: 'Success sent tx'
-                })    
+                    state: 'sent-tx',
+                    info: 'Success sent tx'
+                })
                 revealTxid = interTx.getId();
                 performBitworkForRevealTx = false; // Done
             }

@@ -81,13 +81,13 @@ export class MintInteractiveSubrealmWithRulesCommand implements CommandInterface
       }
     }
     logBanner('HOW SUBREALM MINTING WORKS. WARNING: READ CAREFULLY!')
-    console.log('IMPORTANT NOTE: At anytime you may review the complete active subrealm mint rules with the command: ')
-    console.log(`% npm cli realm-info ${this.requestSubrealm}`)
-    console.log('getSubrealmReponse', getSubrealmReponse);
-    console.log(`*** We detected that the expected active rules list for the next block (${getSubrealmReponse.data.nearest_parent_realm_subrealm_mint_rules.current_height}) are: ***`)
-    console.log(JSON.stringify(getSubrealmReponse.data.nearest_parent_realm_subrealm_mint_rules.current_height_rules, null, 2));
+    // console.log('IMPORTANT NOTE: At anytime you may review the complete active subrealm mint rules with the command: ')
+    // console.log(`% npm cli realm-info ${this.requestSubrealm}`)
+    // console.log('getSubrealmReponse', getSubrealmReponse);
+    // console.log(`*** We detected that the expected active rules list for the next block (${getSubrealmReponse.data.nearest_parent_realm_subrealm_mint_rules.current_height}) are: ***`)
+    // console.log(JSON.stringify(getSubrealmReponse.data.nearest_parent_realm_subrealm_mint_rules.current_height_rules, null, 2));
     pushInfo({
-      state: 'detected rules'
+      state: 'detected-rules'
     })
     let index = 0;
     let matchedAtLeastOneRule = false
@@ -95,7 +95,7 @@ export class MintInteractiveSubrealmWithRulesCommand implements CommandInterface
     if (!getSubrealmReponse.data.nearest_parent_realm_subrealm_mint_rules.current_height_rules ||
       !Object.keys(getSubrealmReponse.data.nearest_parent_realm_subrealm_mint_rules.current_height_rules).length) {
       pushInfo({
-        warning: 'The requested subrealm does not have any rules for the current height. Aborting...',
+        warning: 'The requested parent realm does not have any rules for the current height.',
         state: 'error'
       })
       throw new Error('The requested subrealm does not have any rules for the current height. Aborting...')
@@ -115,19 +115,19 @@ export class MintInteractiveSubrealmWithRulesCommand implements CommandInterface
         // Technically that means a malformed payment *could* possibly be made and it would work.
         // But it's probably not what either party intended. Therefore warn the user and bow out.
         pushInfo({
-          warning: 'Realm rule regex is invalid. Contact the owner of the parent realm to tell them to fix it! Unable to continue. Aborting...',
+          warning: `Realm rule regex ${modifiedPattern} is invalid. Contact the owner of the parent realm to tell them to fix it!`,
           state: 'error'
         })
-        console.log('Realm rule regex is invalid. Contact the owner of the parent realm to tell them to fix it! Unable to continue. Aborting...');
+        // console.log('Realm rule regex is invalid. Contact the owner of the parent realm to tell them to fix it! Unable to continue. Aborting...');
         throw ex;
       }
       if (regexPattern.test(finalSubrealmPart)) {
         pushInfo({
-          state: 'rule matched'
+          state: 'rule-matched'
         })
-        console.log(`The subrealm name of ${finalSubrealmPart} matches the rule entry at index ${index}:`);
-        console.log('---------------------------------------------------------------------------------------');
-        console.log('Pattern: ', modifiedPattern)
+        // console.log(`The subrealm name of ${finalSubrealmPart} matches the rule entry at index ${index}:`);
+        // console.log('---------------------------------------------------------------------------------------');
+        // console.log('Pattern: ', modifiedPattern)
         let outputNum = 0;
         for (const propScript in outputRulesMap) {
           if (!outputRulesMap.hasOwnProperty(propScript)) {
@@ -149,7 +149,7 @@ export class MintInteractiveSubrealmWithRulesCommand implements CommandInterface
             })
             throw new Error('Aborting minting because price is greater than 1')
           }
-          console.log('Rule entry: ', price_point);
+          // console.log('Rule entry: ', price_point);
           if (isNaN(priceRule)) {
             pushInfo({
               warning: 'Price is not a valid number',
@@ -160,7 +160,7 @@ export class MintInteractiveSubrealmWithRulesCommand implements CommandInterface
           
           if (priceRuleTokenType && !isAtomicalId(priceRuleTokenType)) {
             pushInfo({
-              warning: 'id parameter must be a compact atomical id: ' + priceRuleTokenType,
+              warning: 'Id parameter must be a compact atomical id: ' + priceRuleTokenType,
               state: 'error'
             })
             throw new Error('id parameter must be a compact atomical id: ' + priceRuleTokenType);
@@ -169,10 +169,10 @@ export class MintInteractiveSubrealmWithRulesCommand implements CommandInterface
           try {
             const result = detectScriptToAddressType(propScript);
             pushInfo({
-              state: 'payment address detected:' + result
+              state: 'payment-address-detected'
             })
-            console.log('Detected payment address: ', result)
-            console.log('---------------------------------------------------------------------------------------');
+            // console.log('Detected payment address: ', result)
+            // console.log('---------------------------------------------------------------------------------------');
           } catch (ex) {
             // Technically that means a malformed payment *could* possibly be made and it would work.
             // But it's probably not what either party intended. Therefore warn the user and bow out.
@@ -180,12 +180,12 @@ export class MintInteractiveSubrealmWithRulesCommand implements CommandInterface
               state: 'error',
               warning: 'Realm rule output format is not a valid address script. Aborting...'
             })
-            console.log('Realm rule output format is not a valid address script. Aborting...');
+            // console.log('Realm rule output format is not a valid address script. Aborting...');
             throw ex;
           }
-          console.log('Payment Output #', outputNum)
-          console.log('Price (Satoshis): ', priceRule)
-          console.log('Price: ', priceRule / 100000000)
+          // console.log('Payment Output #', outputNum)
+          // console.log('Price (Satoshis): ', priceRule)
+          // console.log('Price: ', priceRule / 100000000)
           outputNum++;
         }
 
@@ -206,7 +206,7 @@ export class MintInteractiveSubrealmWithRulesCommand implements CommandInterface
     if (!matchedAtLeastOneRule) {
       pushInfo({
         state: 'error',
-        warning: 'The requested subrealm does not match any rule entry! Choose a different subrealm name. Aborting...'
+        warning: 'The requested subrealm does not match any rule entry! Choose a different subrealm name.'
       })
       throw new Error('The requested subrealm does not match any rule entry! Choose a different subrealm name. Aborting...')
     }

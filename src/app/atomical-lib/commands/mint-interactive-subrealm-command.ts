@@ -44,7 +44,7 @@ export class MintInteractiveSubrealmCommand implements CommandInterface {
 
     if (this.requestSubRealm.indexOf('.') === -1) {
       pushInfo({
-        warning: 'Cannot mint for a top level Realm. Must be a name like +name.subname. Use the mint-realm command for a top level Realm',
+        warning: 'Cannot mint for a top level Realm. Must be a name like +tlr.subname.',
         state: 'error'
       })
       throw 'Cannot mint for a top level Realm. Must be a name like +name.subname. Use the mint-realm command for a top level Realm';
@@ -55,23 +55,23 @@ export class MintInteractiveSubrealmCommand implements CommandInterface {
     // Validate that the addresses are valid
     try {
       detectAddressTypeToScripthash(this.address);
-      console.log("Initial mint address:", this.address);
+      // console.log("Initial mint address:", this.address);
     } catch (ex) {
       pushInfo({
-        warning: 'Error validating initial owner address',
+        warning: 'Error validating initial owner address. Please check current network',
         state: 'error'
       })
-      console.log('Error validating initial owner address');
+      // console.log('Error validating initial owner address');
       throw ex;
     }
     // Step 1. Query the full realm and determine if it's already claimed
     const getSubrealmCommand = new GetRealmInfoCommand(this.electrumApi, this.requestSubRealm);
     const getSubrealmReponse = await getSubrealmCommand.run();
-    console.log('getSubrealmReponse', JSON.stringify(getSubrealmReponse.data, null, 2));
+    // console.log('getSubrealmReponse', JSON.stringify(getSubrealmReponse.data, null, 2));
 
     if (getSubrealmReponse.data.atomical_id) {
       pushInfo({
-        warning: 'Subrealm is already claimed. Choose another Subrealm',
+        warning: 'That subrealm has been already claimed. Please choose another one.',
         state: 'error'
       })
       return {
@@ -133,9 +133,9 @@ export class MintInteractiveSubrealmCommand implements CommandInterface {
         }
       }
     } else {
-      pushInfo({ state: 'checking rules'})
+      pushInfo({ state: 'checking-rules'})
       logBanner('DETECTED PARENT REALM IS NOT OWNED BY PROVIDED --OWNER WALLET');
-      console.log('Proceeding to mint with the available subrealm minting rules (if available)...')
+      // console.log('Proceeding to mint with the available subrealm minting rules (if available)...')
       const commandMintWithRules = new MintInteractiveSubrealmWithRulesCommand(
         this.electrumApi,
         this.requestSubRealm,

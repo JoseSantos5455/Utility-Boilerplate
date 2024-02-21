@@ -45,20 +45,20 @@ export class MakePendingSubrealmPaymentCommand implements CommandInterface {
     const fundingKeypair = ECPair.fromWIF(this.fundingWIF);
     const keypairFundingInfo: KeyPairInfo = getKeypairInfo(fundingKeypair)
     pushInfo({
-      state: 'Funding address of the funding private key (WIF) provided: ' +  keypairFundingInfo.address
+      'pending-state': 'Funding address provided: '
     })
-    console.log('Funding address of the funding private key (WIF) provided: ', keypairFundingInfo.address);
+    // console.log('Funding address of the funding private key (WIF) provided: ', keypairFundingInfo.address);
     logBanner('Preparing Funding Fees...');
     pushInfo({
-      state: 'Preparing Funding Fees...'
-    })    
+      'pending-state': 'Pre-estimating Funding Fees...'
+    })
     let price = 0;
     this.paymentOutputs.map((e: any) => {
       price += e.value;
     });
 
     pushInfo({
-      state: 'Estimating satsbyte...'
+      'pending-state': 'Estimating satsbyte...'
     })    
     const response: { result: any } = await this.electrumApi.estimateFee(1);
     let estimatedSatsByte = Math.ceil((response.result / 1000) * 100000000);
@@ -66,29 +66,30 @@ export class MakePendingSubrealmPaymentCommand implements CommandInterface {
         estimatedSatsByte = 30; // Something went wrong, just default to 30 bytes sat estimate
     }
     pushInfo({
-      state: `satsbyte set to ${estimatedSatsByte}`
+      'pending-state': `Satsbyte set to ${estimatedSatsByte}`
     })    
     
     const expectedSatoshisDeposit = this.calculateFundsRequired(price, estimatedSatsByte);
     const psbt = new bitcoin.Psbt({ network: NETWORK })
     logBanner(`DEPOSIT ${expectedSatoshisDeposit / 100000000} BTC to ${keypairFundingInfo.address}`);
     pushInfo({
-      state: `awaiting ${expectedSatoshisDeposit / 100000000} BTC to ${keypairFundingInfo.address}`,
-      qrcode: keypairFundingInfo.address
+      'pending-state': `Awaiting funding UTXO`,
+      'rule-address': keypairFundingInfo.address,
+      'rule-fee': expectedSatoshisDeposit
     })  
     // temporary
     // qrcode.generate(keypairFundingInfo.address, { small: false });
-    console.log(`...`)
-    console.log(`...`)
-    console.log(`WAITING UNTIL ${expectedSatoshisDeposit / 100000000} BTC RECEIVED AT ${keypairFundingInfo.address}`)
-    console.log(`...`)
-    console.log(`...`)
+    // console.log(`...`)
+    // console.log(`...`)
+    // console.log(`WAITING UNTIL ${expectedSatoshisDeposit / 100000000} BTC RECEIVED AT ${keypairFundingInfo.address}`)
+    // console.log(`...`)
+    // console.log(`...`)
     let utxo = await this.electrumApi.waitUntilUTXO(keypairFundingInfo.address, expectedSatoshisDeposit, 5, true);
     pushInfo({
-      state: `Detected UTXO (${utxo.txid}:${utxo.vout}) with value ${utxo.value} for funding the operation...`,
-      qrcode: keypairFundingInfo.address
+      // 'pending-state': `Detected funding UTXO (${utxo.txid}:${utxo.vout}) with value ${utxo.value} for funding the operation...`,
+      'pending-state': `Detected funding UTXO...`,
     })  
-    console.log(`Detected UTXO (${utxo.txid}:${utxo.vout}) with value ${utxo.value} for funding the operation...`);
+    // console.log(`Detected UTXO (${utxo.txid}:${utxo.vout}) with value ${utxo.value} for funding the operation...`);
     // Add the funding input
     psbt.addInput({
       sequence: this.options.rbf ? RBF_INPUT_SEQUENCE : undefined,
@@ -117,20 +118,19 @@ export class MakePendingSubrealmPaymentCommand implements CommandInterface {
       value: 0,
     })
     pushInfo({
-      state: `signing transaction...`
+      'pending-state': `Signing transaction...`
     })
     // Add op return here
     psbt.signInput(0, keypairFundingInfo.tweakedChildNode)
     psbt.finalizeAllInputs();
     const tx = psbt.extractTransaction();
     const rawtx = tx.toHex();
-    console.log('rawtx', rawtx);
-    console.log(`Constructed Atomicals Payment, attempting to broadcast: ${tx.getId()}`);
-    console.log(`About to broadcast`);
-    pushInfo({state: 'About to broadcast'})
+    // console.log('rawtx', rawtx);
+    // console.log(`Constructed Atomicals Payment, attempting to broadcast: ${tx.getId()}`);
+    // console.log(`About to broadcast`);
+    pushInfo({'pending-state': 'Broadcasting transaction...'})
     let broadcastedTxId = await this.electrumApi.broadcast(rawtx);
-    pushInfo({state: 'Success!'})
-    console.log(`Success!`);
+    pushInfo({'pending-state': 'Success'})
     return broadcastedTxId;
   }
 

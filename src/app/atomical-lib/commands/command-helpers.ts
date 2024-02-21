@@ -35,9 +35,9 @@ export const switchLibraryNetwork = (str: string) => {
 }
 
 export function logBanner(text: string) {
-    console.log("====================================================================")
-    console.log(text)
-    console.log("====================================================================")
+    // console.log("====================================================================")
+    // console.log(text)
+    // console.log("====================================================================")
 }
 
 export const calculateFundsRequired = (additionalInputValue: number, atomicalSats: number, satsByte: number, mintDataLength = 0, baseTxByteLength = 300) => {
