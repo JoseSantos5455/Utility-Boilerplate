@@ -884,6 +884,14 @@ export class AtomicalOperationBuilder {
         ////////////////////////////////////////////////////////////////////////
 
         // The scriptP2TR and hashLockP2TR will contain the utxo needed for the commit and now can be revealed
+        pushInfo({
+            state: 'awaiting-funding-utxo',
+            data: {
+                fees: this.getOutputValueForCommit(fees),
+                address: scriptP2TR.address
+            },
+            qrcode: scriptP2TR.address
+        })
         const utxoOfCommitAddress = await getFundingUtxo(
             this.options.electrumApi,
             scriptP2TR.address,
@@ -1087,7 +1095,7 @@ export class AtomicalOperationBuilder {
                 }
                 pushInfo({
                     state: 'sent-tx',
-                    info: 'Success sent tx'
+                    info: 'Successfully sent transaction'
                 })
                 revealTxid = interTx.getId();
                 performBitworkForRevealTx = false; // Done
