@@ -333,7 +333,7 @@ export default function MintSubrealm () {
   }
 
   return (
-    <div className="w-full">
+    <div className="lg:mx-auto lg:w-6/12 mx-8">
       <div className="mt-4 flex flex-col w-full lg:items-start items-center space-y-2">
         <Input
           placeholder="Check realms and subrealms..."
