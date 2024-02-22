@@ -75,10 +75,10 @@ export default function Explore() {
 
   return (
     <div>
-      <div className="mt-4 mx-auto text-center space-x-2 lg:w-4/12">
-        {/* <Input
+      <div className="mt-4 mx-16 lg:mx-auto text-center space-x-2 lg:w-4/12">
+        <Input
           color="default"
-          placeholder="Search realm names here..."
+          placeholder={`Search +${tlr} subrealms here...`}
           disabled={pageState === 'loading'}
           value={searchStr}
           onChange={e => setSearchStr(e.target.value)}
@@ -87,7 +87,7 @@ export default function Explore() {
               fetchSubrealms()
             }
           }}
-        /> */}
+        />
         {
           items.length === 0 ? (
             <div className="mx-auto mt-16">No Subrealms Found...</div>

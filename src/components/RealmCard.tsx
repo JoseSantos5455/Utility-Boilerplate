@@ -21,27 +21,24 @@ export const RealmCard = ({atomicalId, subrealmName, filter}: {atomicalId?: stri
   const [loading, setLoading] = useState(true)
 
   const [atomicalNumber, setAtomicalNumber] = useState("-----")
+  const [status, setStatus] = useState("unknown")
   // const [subrealmName, setSubrealmName] = useState("-----")
 
   useEffect(() => {
-    console.log('I am being drawn')
     const fetchData = async () => await getDetailedInfoFromAtomicalId()
     if (!atomicalId?.startsWith("fake-skeleton")) {
       fetchData()
     }
   }, [])
 
-  useEffect(() => {
-    console.log(filter)
-    console.log(subrealmName && subrealmName?.indexOf(filter) > -1)
-  }, [filter])
-
   const getDetailedInfoFromAtomicalId = async () => {
     setLoading(true)
     const APIEndpoint = `https://ep.atomicals.xyz${network === "testnet" ? "/testnet" : ""}/proxy/blockchain.atomicals.get?params=[\"${atomicalId}\"]`
     const response = await axios.get(APIEndpoint)
     if (response.data && response.data.success) {
-      const { atomical_id, atomical_number, $request_subrealm } = response.data.response.result
+      console.log(response.data.response.result)
+      const { atomical_id, atomical_number, $request_subrealm, $request_subrealm_status } = response.data.response.result
+      setStatus($request_subrealm_status.status)
       // setSubrealmName($request_subrealm)
       setAtomicalNumber(atomical_number)
       setLoading(false)
@@ -54,13 +51,12 @@ export const RealmCard = ({atomicalId, subrealmName, filter}: {atomicalId?: stri
     )
   }
   return (
-    // <Card className={`${(subrealmName && subrealmName?.indexOf(filter) > -1) ? "" : "hidden"} flex flex-col items-center`}>
-    <Card className={`${(subrealmName && subrealmName.indexOf(filter) > -1) ? "" : "hidden"} flex flex-col items-center`}>
+    <Card style={{display: `${(status === "verified" && subrealmName && subrealmName.indexOf(filter) > -1) ? "block" : "none"}`}} className={`flex flex-col items-center`}>
       <CardHeader>
-        <Image className="rounded-lg" width={120} height={120} src={`/bull.jpg`} alt="" />
+        <Image className="m-auto rounded-lg" width={120} height={120} src={`/bull.jpg`} alt="" />
         <div className="flex flex-col items-center justify-around space-y-2">
-          <CardTitle>{atomicalNumber}</CardTitle>
-          <CardDescription>+{tlr}.{subrealmName}</CardDescription>
+          <CardTitle>{subrealmName}</CardTitle>
+          <CardDescription>#{atomicalNumber}</CardDescription>
           <Button>
             <a href={`/visit:${atomicalId}`} target="_blank">See more</a>
           </Button>
