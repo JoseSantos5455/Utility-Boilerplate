@@ -1,9 +1,10 @@
 "use client"
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { WalletContext } from "@/common/WalletContextProvider";
 import { AppContext } from "@/common/AppContextProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Toggle } from "@/components/ui/toggle"
 import { LoadingSpinner } from "@/components/icons/Spinner";
 import { ClipboardCopyIcon } from "lucide-react";
 import {
@@ -13,12 +14,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-// import {
-//   Tooltip,
-//   TooltipContent,
-//   TooltipProvider,
-//   TooltipTrigger,
-// } from "@/components/ui/tooltip"
 import QRCode from "react-qr-code";
 
 import { detectScriptToAddressType } from "../atomical-lib";
@@ -40,26 +35,43 @@ export default function MintSubrealm () {
   const { network, tlr, mnemonic, showError, showAlert } = useContext(AppContext)
   const { walletData } = useContext(WalletContext)
 
-  const [progressState, setProgressState] = useState('ready')
-  const [pendingState, setPendingState] = useState('ready')
-  const [pendingDialogOpen, setPendingDialogOpen] = useState(false)
+  // main state variables
   const [fullname, setFullname] = useState(`+${tlr}.`)
+  const [mintingSubrealm, setMintingSubrealm] = useState("")
   const [receiverAddr, setReceiverAddr] = useState("")
   const [fundingAddress, setFundingAddress] = useState("")
+
+  // satsbyte set logic state variables
+  const [satsbyteDialogOpen, setSatsbyteDialogOpen] = useState(false)
+  const [fastestFee, setFastestFee] = useState(0)
+  const [halfHourFee, setHalfHourFee] = useState(0)
+  const [hourFee, setHourFee] = useState(0)
+  const [customFee, setCustomFee] = useState(30)
+  const [selectedFeeType, setSelectedFeeType] = useState("fast")
+  const [nextFunctionForSatsbyte, setNextFunctionForSatsbyte] = useState("mint")
+  const customFeeInput = useRef<HTMLInputElement>(null)
+
+  // claim logic state variables
+  const [progressState, setProgressState] = useState('ready')
   const [fundingFee, setFundingFee] = useState(0)
   const [fundingStatementVisible, setFundingStatementVisible] = useState(false)
-  const [payToVerifyState, setPaytoVerifyState] = useState('ready')
-  const [payToVerifyDialogOpen, setPayToVerifyDialogOpen] = useState(false)
-  const [verifyingSubrealmFullName, setVerifyingSubrealmFullName] = useState("")
-  const [ruleFee, setRuleFee] = useState(0)
-  const [ruleAddress, setRuleAddress] = useState('')
-  // const [copiedTooltipOpen, setCopiedTooltipOpen] = useState(false)
   const [qrCode, setQrCode] = useState('')
-  const [ruleQrCode, setRuleQrCode] = useState('')
 
+  // get pending subs logic state variables
+  const [pendingState, setPendingState] = useState('ready')
+  const [pendingDialogOpen, setPendingDialogOpen] = useState(false)
   const [pendingAwaitingConfirmations, setPendingAwaitingConfirmations] = useState([])
   const [pendingAwaitingPayments, setPendingAwaitingPayments] = useState([])
   const [currentBlockHeight, setCurrentBlockHeight] = useState(2578696)    // block height at this time of coding...lol...
+
+  // pay to verify logic state variables
+  const [payToVerifyState, setPaytoVerifyState] = useState('ready')
+  const [payToVerifyDialogOpen, setPayToVerifyDialogOpen] = useState(false)
+  const [verifyingSubrealmAtomicalId, setVerifyingSubrealmAtomicalId] = useState("")
+  const [verifyingSubrealmPaymentRules, setVerifyingSubrealmPaymentRules] = useState({})
+  const [ruleFee, setRuleFee] = useState(0)
+  const [ruleAddress, setRuleAddress] = useState('')
+  const [ruleQrCode, setRuleQrCode] = useState('')
   
   useEffect(() => {
     if (!receiverAddr)
@@ -132,6 +144,32 @@ export default function MintSubrealm () {
     setPayToVerifyDialogOpen(false)
   }
 
+  const onCloseSatsbyte = () => {
+    setProgressState('ready')
+    setSatsbyteDialogOpen(false)
+  }
+
+  const openSatsbyteWindow = async (next: string) => {
+    const getRecommendedFeeAPI = `https://mempool.space/${network === "testnet" ? "testnet/" : ""}api/v1/fees/recommended`
+    const response = await fetch(getRecommendedFeeAPI)
+    const recommendedFees = await response.json()
+    setFastestFee(recommendedFees.fastestFee)
+    setHourFee(recommendedFees.hourFee)
+    setHalfHourFee(recommendedFees.halfHourFee)
+    setNextFunctionForSatsbyte(next)
+    setSatsbyteDialogOpen(true)
+  }
+
+  const getUserSelectedSatsbyte = () => {
+    switch (selectedFeeType) {
+      case "fast": return fastestFee;
+      case "average": return halfHourFee;
+      case "slow": return hourFee;
+      case "custom": return customFee;
+      default: return -1
+    }
+  }
+
   const mintSubrealm = async () => {
     let str = fullname.trim()
     setProgressState('started')
@@ -164,15 +202,21 @@ export default function MintSubrealm () {
       return
     }
 
+    setMintingSubrealm(str)
+    await openSatsbyteWindow("mint")
+  }
+
+  const MintSubrealmWithSatsByte = async (userSetSatsbyte: number) => {
+    setSatsbyteDialogOpen(false)
     const atomicals = new Atomicals(ElectrumApi.createClient((network === 'testnet' ? process.env.NEXT_PUBLIC_ELECTRUMX_PROXY_TESTNET_BASE_URL : process.env.NEXT_PUBLIC_ELECTRUMX_PROXY_BASE_URL) || ''));
     try {
       const { owner, WIF } = await getFundingDetails()
       setProgressState('validating')
       await atomicals.electrumApi.open();
       const command: CommandInterface = new MintInteractiveSubrealmCommand(atomicals.electrumApi, {
-        satsbyte: -1,
+        satsbyte: userSetSatsbyte,
         satsoutput: 1000
-      }, str, receiverAddr, WIF, owner);
+      }, mintingSubrealm, receiverAddr, WIF, owner);
       const res = await command.run(pushInfo);
     } catch (error: any) {
       // console.log(error)
@@ -225,9 +269,16 @@ export default function MintSubrealm () {
 
   const payForRules = async (atomicalId: any, paymentRules: any) => {
     setPendingDialogOpen(false)
-    setVerifyingSubrealmFullName(atomicalId)
+    setVerifyingSubrealmAtomicalId(atomicalId)
+    setVerifyingSubrealmPaymentRules(paymentRules)
+    openSatsbyteWindow("verify")
+  }  
+
+  const PayToVerifyWithSatsByte = async (userSetSatsbyte: number) => {
+    setSatsbyteDialogOpen(false)
     setPayToVerifyDialogOpen(true)
     let paymentOutputs = []
+    const paymentRules: any = verifyingSubrealmPaymentRules
     for (const payScript in paymentRules) {
       if (!paymentRules.hasOwnProperty(payScript)) {
         continue;
@@ -253,7 +304,7 @@ export default function MintSubrealm () {
     
     try {
       await atomicals.electrumApi.open();
-      const command: CommandInterface = new MakePendingSubrealmPaymentCommand(atomicals.electrumApi, {}, WIF, atomicalId, paymentOutputs);
+      const command: CommandInterface = new MakePendingSubrealmPaymentCommand(atomicals.electrumApi, {satsbyte: userSetSatsbyte}, WIF, verifyingSubrealmAtomicalId, paymentOutputs);
       const result = await command.run(pushInfo);
     } catch (err) {
       console.log(err)
@@ -343,13 +394,6 @@ export default function MintSubrealm () {
           <div>
             {`${fundingAddress.substring(0, 5)}.....${fundingAddress.substring(fundingAddress.length - 5, fundingAddress.length)}`}
           </div>
-          {/* <TooltipProvider>
-            <Tooltip open={copiedTooltipOpen}>
-              <TooltipContent>
-                <p>Copied !</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider> */}
 
           <ClipboardCopyIcon 
             className="cursor-pointer" 
@@ -357,7 +401,6 @@ export default function MintSubrealm () {
               if (typeof navigator !== "undefined") {
                 navigator.clipboard.writeText(fundingAddress)
                 showAlert('Copied to clipboard !')
-                // setCopiedTooltipOpen(true)
               }
             }} />
         </div>
@@ -396,12 +439,10 @@ export default function MintSubrealm () {
                       const payment_rule = elem.applicable_rule.matched_rule.o
                       return (
                         <div key={elem.atomical_id} className="mt-3">
-                          {/* <div>atomical_id: {elem.atomical_id}</div> */}
                           <div>Atomical #{elem.atomical_number}: +{elem.request_full_realm_name}</div>
                           <div>Payment from height: {elem.make_payment_from_height}</div>
                           <div>Payment no later than: {elem.payment_due_no_later_than_height}</div>
                           <div>Candidates: {elem.subrealm_candidates.length}</div>
-                          {/* <div>Receipt Id: {elem.receipt_id}</div> */}
                           <div>
                             <Button color="primary" onClick={() => payForRules(elem.atomical_id, payment_rule)}>
                               Pay to verify
@@ -422,7 +463,6 @@ export default function MintSubrealm () {
                   {
                     pendingAwaitingConfirmations.map((elem: any) => (
                       <div key={elem.atomical_id} className="mt-6">
-                        {/* <div>atomical_id: {elem.atomical_id}</div> */}
                         <div>Atomical #{elem.atomical_number}: +{elem.request_full_realm_name}</div>
                         <div>Payment from height: {elem.make_payment_from_height}</div>
                         <div>payment no later than: {elem.payment_due_no_later_than_height}</div>
@@ -431,6 +471,72 @@ export default function MintSubrealm () {
                     ))
                   }
                 </div>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={satsbyteDialogOpen} onOpenChange={onCloseSatsbyte} modal>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Fee Rate</DialogTitle>
+            <DialogDescription>
+              <div className="flex flex-col space-y-3 mt-4">
+                <div className=" w-full flex lg:flex-row flex-col lg:space-x-2 space-x-0 space-y-2 lg:space-y-0 justify-between">
+                  <Toggle onPressedChange={() => setSelectedFeeType("fast")} pressed={selectedFeeType === "fast"} variant="outline" className="w-full flex flex-col py-10">
+                    <div>Fast</div>
+                    <div>{fastestFee} sat/vB</div>
+                    <div>~ 10 mins</div>
+                  </Toggle>
+                  <Toggle 
+                    onPressedChange={() => {
+                      setSelectedFeeType("custom")
+                      if (customFeeInput.current)
+                        customFeeInput.current.focus()
+                    }} 
+                    pressed={selectedFeeType === "custom"} 
+                    variant="outline" 
+                    className="w-full flex flex-col py-10">
+                    <div>Custom</div>
+                    <div className="flex flex-row items-center">
+                      <input 
+                        value={customFee} 
+                        onChange={(e: any) => {
+                          if (e.target.value <= 300 && e.target.value > hourFee)
+                            setCustomFee(e.target.value)
+                        }} 
+                        ref={customFeeInput} 
+                        className={`${selectedFeeType === "custom" ? "w-12" : "opacity-0 w-0"} p-1 my-0 `}
+                        type="number" /> 
+                      <div className={`${selectedFeeType === "custom" ? "opacity-0 w-0" : ""}`}>
+                        {customFee}
+                      </div>
+                      <div className="ml-2">
+                        sat/vB
+                      </div>
+                    </div>
+                  </Toggle>
+                </div>
+                <div className=" w-full flex lg:flex-row flex-col lg:space-x-2 space-x-0 space-y-2 lg:space-y-0 justify-between">
+                  <Toggle onPressedChange={() => setSelectedFeeType("average")} pressed={selectedFeeType === "average"} variant="outline" className="w-full flex flex-col py-10">
+                    <div>Average</div>
+                    <div>{halfHourFee} sat/vB</div>
+                    <div>~ 30 mins</div>
+                  </Toggle>
+                  <Toggle onPressedChange={() => setSelectedFeeType("slow")} pressed={selectedFeeType === "slow"} variant="outline" className="w-full flex flex-col py-10">
+                    <div>Slow</div>
+                    <div>{hourFee} sat/vB</div>
+                    <div>~ 1 hour</div>
+                  </Toggle>
+                </div>
+                <Button onClick={async () => {
+                  const satsbyte = getUserSelectedSatsbyte()
+                  if (nextFunctionForSatsbyte === "mint")
+                    await MintSubrealmWithSatsByte(satsbyte)
+                  else if (nextFunctionForSatsbyte === "verify")
+                    await PayToVerifyWithSatsByte(satsbyte)
+                }}>Next</Button>
               </div>
             </DialogDescription>
           </DialogHeader>

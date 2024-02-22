@@ -60,16 +60,30 @@ export class MakePendingSubrealmPaymentCommand implements CommandInterface {
     pushInfo({
       'pending-state': 'Estimating satsbyte...'
     })    
-    const response: { result: any } = await this.electrumApi.estimateFee(1);
-    let estimatedSatsByte = Math.ceil((response.result / 1000) * 100000000);
-    if (isNaN(estimatedSatsByte)) {
-        estimatedSatsByte = 30; // Something went wrong, just default to 30 bytes sat estimate
+    // const response: { result: any } = await this.electrumApi.estimateFee(1);
+    // let estimatedSatsByte = Math.ceil((response.result / 1000) * 100000000);
+    // if (isNaN(estimatedSatsByte)) {
+    //     estimatedSatsByte = 30; // Something went wrong, just default to 30 bytes sat estimate
+    // }
+
+    if (this.options.satsbyte == -1) {
+        const response: { result: any } = await this.electrumApi.estimateFee(1);
+        let estimatedSatsByte = Math.ceil((response.result / 1000) * 100000000);
+        if (isNaN(estimatedSatsByte)) {
+            estimatedSatsByte = 30; // Something went wrong, just default to 30 bytes sat estimate
+            console.log('satsbyte fee query failed, defaulted to: ', estimatedSatsByte)
+        } else {
+            this.options.satsbyte = estimatedSatsByte; 
+            console.log('satsbyte fee auto-detected to: ', estimatedSatsByte)
+        }
+    } else {
+        console.log('satsbyte fee manually set to: ', this.options.satsbyte)
     }
     pushInfo({
-      'pending-state': `Satsbyte set to ${estimatedSatsByte}`
+      'pending-state': `Satsbyte set to ${this.options.satsbyte}`
     })    
     
-    const expectedSatoshisDeposit = this.calculateFundsRequired(price, estimatedSatsByte);
+    const expectedSatoshisDeposit = this.calculateFundsRequired(price, this.options.satsbyte);
     const psbt = new bitcoin.Psbt({ network: NETWORK })
     logBanner(`DEPOSIT ${expectedSatoshisDeposit / 100000000} BTC to ${keypairFundingInfo.address}`);
     pushInfo({
