@@ -1095,7 +1095,8 @@ export class AtomicalOperationBuilder {
                 }
                 pushInfo({
                     state: 'sent-tx',
-                    info: 'Successfully sent transaction'
+                    info: 'Successfully sent transaction',
+                    data: revealTx.getId()
                 })
                 revealTxid = interTx.getId();
                 performBitworkForRevealTx = false; // Done

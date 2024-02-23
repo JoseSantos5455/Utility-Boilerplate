@@ -54,6 +54,7 @@ export default function MintSubrealm () {
 
   // claim logic state variables
   const [progressState, setProgressState] = useState('ready')
+  const [claimTxId, setClaimTxId] = useState("")
   const [fundingFee, setFundingFee] = useState(0)
   const [fundingStatementVisible, setFundingStatementVisible] = useState(false)
   const [qrCode, setQrCode] = useState('')
@@ -88,6 +89,9 @@ export default function MintSubrealm () {
         setFundingAddress(info.data.address)
         setFundingStatementVisible(true)
       }
+      if (info.state === 'sent-tx') {
+        setClaimTxId(info.data)
+      }
     }
     if (info.warning) {
       showError(info.warning)
@@ -106,7 +110,7 @@ export default function MintSubrealm () {
       }
       if (info['pending-state'] === "Success") {
         setPayToVerifyDialogOpen(false)
-        showAlert('Successfully verified subrealm.')
+        showAlert('Successfully sent verification payment. Wait for the transaction to be confirmed...')
       }
     }
     if (info['pending-state'] === "error") {
@@ -246,19 +250,21 @@ export default function MintSubrealm () {
         const { current_block_height, request_subrealm } = result.data
         setCurrentBlockHeight(current_block_height)
         const { pending_awaiting_confirmations_for_payment_window, pending_awaiting_payment } = request_subrealm
+        setPendingAwaitingConfirmations([])
         if (pending_awaiting_confirmations_for_payment_window && pending_awaiting_confirmations_for_payment_window.length > 0) {
           setPendingAwaitingConfirmations(pending_awaiting_confirmations_for_payment_window)
         }
+        setPendingAwaitingPayments([])
         if (pending_awaiting_payment && pending_awaiting_payment.length > 0) {
           setPendingAwaitingPayments(pending_awaiting_payment)
         }
         setPendingDialogOpen(true)
       }
       else {
-        showAlert('No pending subrealms found.')
+        showAlert('No pending subrealms found...if you have just broadcast transaction, please wait for it to be confirmed and check pending realms again.')
       }
     } catch (error: any) {
-      showAlert('No pending subrealms found.')
+      showAlert('No pending subrealms found...if you have just broadcast transaction, please wait for it to be confirmed and check pending realms again.')
       return {
         success: false,
         message: error.toString(),
@@ -330,7 +336,7 @@ export default function MintSubrealm () {
       case 'mining-started': return 'Mining started... This could take some time due to your GPU...'
       case 'mined-bitwork': return 'Bitwork mined !'
       case 'broadcasting-tx': return 'Broadcasting transaction for your subrealm'
-      case 'sent-tx': return 'Subrealm Minted Successfully! Check it on your wallet.'
+      case 'sent-tx': return `Subrealm Minted Successfully! Wait for the transaction to be confirmed...`
     }
     return ''
   }
@@ -352,8 +358,16 @@ export default function MintSubrealm () {
           }}
         />
         <div className=" w-full flex lg:flex-row flex-col lg:space-x-2 space-x-0 space-y-2 lg:space-y-0">
-          <Button disabled={progressState !== "ready" && progressState !== "error" && progressState !== "sent-tx"} onClick={() => mintSubrealm()}>Mint</Button>
-          <Button disabled={pendingState !== "ready"} onClick={() => getPendingRealms()}>Pending</Button>
+          <Button disabled={progressState !== "ready" && progressState !== "error" && progressState !== "sent-tx"} onClick={() => mintSubrealm()}>
+            <LoadingSpinner className={`h-4 ${(progressState !== 'ready' && progressState !== 'error' && progressState !== 'sent-tx') ? "" : "hidden"}`}>
+            </LoadingSpinner>
+            Mint
+          </Button>
+          <Button disabled={pendingState !== "ready"} onClick={() => getPendingRealms()}>
+            <LoadingSpinner className={`h-4 ${(pendingState !== 'ready' && pendingState !== 'error' && pendingState !== 'sent-tx') ? "" : "hidden"}`}>
+            </LoadingSpinner>
+            Pending
+          </Button>
         </div>
         
       </div>
@@ -425,6 +439,9 @@ export default function MintSubrealm () {
             <DialogDescription>
               <div className="mt-8 ">
                 <div>
+                  If you have just claimed subrealm or sent verification payment, please wait for the transaction to be confirmed and try pending realms again to avoid double payment.
+                </div>
+                <div className="mt-6">
                   Current Block Height
                 </div>
                 <div className="mt-2">
@@ -535,7 +552,7 @@ export default function MintSubrealm () {
                 </div>
                 <Button onClick={async () => {
                   const satsbyte = getUserSelectedSatsbyte()
-                  if (satsbyte <= minimumFee) {
+                  if (satsbyte < minimumFee) {
                     showAlert("You have set too low satsbyte. Transaction might be stuck...")
                     return;
                   }
