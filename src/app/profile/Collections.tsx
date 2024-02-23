@@ -43,7 +43,7 @@ export const Collections = ({collectionsObject}: {collectionsObject: any}) => {
             <div className="flex flex-row space-x-2">
               {
                 elem.previews.map((preview: any) => (
-                  <SubrealmPFP imageSrc={preview.img.split(":")[3].toString()} />
+                  <SubrealmPFP key={`${elem.name}${preview.img}`} imageSrc={preview.img.split(":")[3].toString()} />
                 ))
               }
             </div>
