@@ -36,10 +36,8 @@ export const RealmCard = ({atomicalId, subrealmName, filter}: {atomicalId?: stri
     const APIEndpoint = `https://ep.atomicals.xyz${network === "testnet" ? "/testnet" : ""}/proxy/blockchain.atomicals.get?params=[\"${atomicalId}\"]`
     const response = await axios.get(APIEndpoint)
     if (response.data && response.data.success) {
-      console.log(response.data.response.result)
       const { atomical_id, atomical_number, $request_subrealm, $request_subrealm_status } = response.data.response.result
       setStatus($request_subrealm_status.status)
-      // setSubrealmName($request_subrealm)
       setAtomicalNumber(atomical_number)
       setLoading(false)
     }

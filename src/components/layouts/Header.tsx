@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Logo } from "./Logo"
@@ -13,8 +12,6 @@ import { useRouter } from "next/navigation"
 import { WalletConnect } from "../WalletConnect"
 import { ModeToggle } from "../ui/ModeToggle"
 
-
-
 export const Header = () => {
 
   const router = useRouter()
@@ -25,16 +22,8 @@ export const Header = () => {
       href: "/explore"
     },
     {
-      text: "Check",
-      href: "/check"
-    },
-    {
       text: "Mint Subrealm",
       href: "/mint-subrealm"
-    },
-    {
-      text: "My Assets",
-      href: "/my-assets"
     },
     {
       text: "Profile",

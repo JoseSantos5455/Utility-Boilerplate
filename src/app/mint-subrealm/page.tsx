@@ -46,6 +46,7 @@ export default function MintSubrealm () {
   const [fastestFee, setFastestFee] = useState(0)
   const [halfHourFee, setHalfHourFee] = useState(0)
   const [hourFee, setHourFee] = useState(0)
+  const [minimumFee, setMinimumFee] = useState(0)
   const [customFee, setCustomFee] = useState(30)
   const [selectedFeeType, setSelectedFeeType] = useState("fast")
   const [nextFunctionForSatsbyte, setNextFunctionForSatsbyte] = useState("mint")
@@ -155,6 +156,7 @@ export default function MintSubrealm () {
     const recommendedFees = await response.json()
     setFastestFee(recommendedFees.fastestFee)
     setHourFee(recommendedFees.hourFee)
+    setMinimumFee(recommendedFees.minimumFee)
     setHalfHourFee(recommendedFees.halfHourFee)
     setNextFunctionForSatsbyte(next)
     setSatsbyteDialogOpen(true)
@@ -226,8 +228,9 @@ export default function MintSubrealm () {
   }
 
   const getPendingRealms = async () => {
-    if (!receiverAddr) {
-      showError('Please input receiver address or connect your wallet to see if you have any pending subrealms...')
+    if (!receiverAddr || receiverAddr === "") {
+      showAlert('Please input receiver address or connect your wallet to see if you have any pending subrealms...')
+      return;
     }
     setPendingState('fetching')
     const { WIF } = await getFundingDetails()
@@ -502,9 +505,9 @@ export default function MintSubrealm () {
                     <div className="flex flex-row items-center">
                       <input 
                         value={customFee} 
+                        onBlur={() => console.log(customFee)}
                         onChange={(e: any) => {
-                          if (e.target.value <= 300 && e.target.value > hourFee)
-                            setCustomFee(e.target.value)
+                          setCustomFee(e.target.value)
                         }} 
                         ref={customFeeInput} 
                         className={`${selectedFeeType === "custom" ? "w-12" : "opacity-0 w-0"} p-1 my-0 `}
@@ -532,6 +535,14 @@ export default function MintSubrealm () {
                 </div>
                 <Button onClick={async () => {
                   const satsbyte = getUserSelectedSatsbyte()
+                  if (satsbyte <= minimumFee) {
+                    showAlert("You have set too low satsbyte. Transaction might be stuck...")
+                    return;
+                  }
+                  if (satsbyte >= 200) {
+                    showAlert("You have set too high satsbyte. You might pay high network fee...")
+                    return;
+                  }
                   if (nextFunctionForSatsbyte === "mint")
                     await MintSubrealmWithSatsByte(satsbyte)
                   else if (nextFunctionForSatsbyte === "verify")

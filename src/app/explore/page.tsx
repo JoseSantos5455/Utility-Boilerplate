@@ -37,29 +37,22 @@ export default function Explore() {
   }
 
   const fetchSubrealms = async () => {
-    console.log('feting')
-    setPageState('loading')
     const tlr_id = await getAtomicalIdFromTLR()
 
     let num = 0
     let found = false
     do {
-      console.log('doing' + num)
       num ++
       const APIEndpoint = `https://ep.atomicals.xyz${network === "testnet" ? "/testnet" : ""}/proxy/blockchain.atomicals.find_subrealms?params=[\"${tlr_id}\"]`
       try {
-        console.log('feting')
         const response = await axios.get(APIEndpoint)
-        console.log('fetched')
         if (response.data && response.data.success) {
-          console.log('found')
           found = true
           const { result } = response.data.response
           setItems(result)
           break;
         }
       } catch (error) {
-        console.log('error')
         continue;
       } finally {
         if (found)
