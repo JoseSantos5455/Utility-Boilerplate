@@ -6,6 +6,8 @@ import { AppContext } from "@/common/AppContextProvider";
 
 import { SubrealmPFP } from "../SubrealmPFP";
 import { Wallets } from "../Wallets";
+import { Links } from "../Links";
+import { Collections } from "../Collections"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import axios from "axios";
@@ -109,7 +111,9 @@ const Profile = ({ params }: { params: { subrealmname: string } }) => {
       <SubrealmPFP imageSrc={imageSrc} />
       <div>{profileName}</div>
       <div>{description}</div>
+      <Links linksObject={linksObject} />
       <Wallets wallets={walletsObject} />
+      <Collections collectionsObject={collectionsObject} />
     </div>
   )
 }

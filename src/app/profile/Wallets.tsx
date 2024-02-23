@@ -8,7 +8,6 @@ export const Wallets = ({wallets}: {wallets: any}) => {
   useEffect(() => {
     if (wallets) {
       let arr: any = []
-      // console.log(Object.keys(wallets))
       Object.keys(wallets).map((chain: any) => {
         arr.push({
           chain,
@@ -16,13 +15,8 @@ export const Wallets = ({wallets}: {wallets: any}) => {
         })
       })
       setWalletList(arr)
-      console.log(walletList)
     }
   }, [])
-
-  useEffect(() => {
-    console.log(walletList)
-  }, [walletList])
 
   return (
     <div>
