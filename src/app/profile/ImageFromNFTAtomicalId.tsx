@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from "react"
 import { AppContext } from "@/common/AppContextProvider"
 import { Skeleton } from "@/components/ui/skeleton"
 
-export const ImageFromAtomicalId = ({ imageSrc, dataLoading, additionalClass = "", isStorage = false }: { imageSrc: string, dataLoading?: boolean, additionalClass?: string, isStorage?: boolean }) => {
+export const ImageFromNFTAtomicalId = ({ imageSrc, dataLoading, additionalClass = "", isStorage = false }: { imageSrc: string, dataLoading?: boolean, additionalClass?: string, isStorage?: boolean }) => {
 
   const { network } = useContext(AppContext)
   const APIEndpoint = network === 'testnet' ? process.env.NEXT_PUBLIC_CURRENT_PROXY_TESTNET : process.env.NEXT_PUBLIC_CURRENT_PROXY

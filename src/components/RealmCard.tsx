@@ -4,6 +4,7 @@ import { AppContext } from "@/common/AppContextProvider";
 import axios from 'axios'
 import { Button } from "./ui/button";
 import Image from "next/image";
+import { ImageFromRealmAtomicalId } from "@/app/profile/ImageFromRealmAtomicalId";
 
 import {
   Card,
@@ -51,7 +52,7 @@ export const RealmCard = ({atomicalId, subrealmName, filter}: {atomicalId?: stri
   return (
     <Card style={{display: `${(status === "verified" && subrealmName && subrealmName.indexOf(filter) > -1) ? "block" : "none"}`}} className={`flex flex-col items-center`}>
       <CardHeader>
-        <Image className="m-auto rounded-lg" width={120} height={120} src={`/bull.jpg`} alt="" />
+        <ImageFromRealmAtomicalId atomicalId={atomicalId || ""}  />
         <div className="flex flex-col items-center justify-around space-y-2">
           <CardTitle>{subrealmName}</CardTitle>
           <CardDescription>#{atomicalNumber}</CardDescription>

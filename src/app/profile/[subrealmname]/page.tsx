@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "@/common/AppContextProvider";
 
-import { ImageFromAtomicalId } from "../ImageFromAtomicalId";
+import { ImageFromNFTAtomicalId } from "../ImageFromNFTAtomicalId";
 import { Wallets } from "../Wallets";
 import { Links } from "../Links";
 import { Collections } from "../Collections"
@@ -152,7 +152,7 @@ const Profile = ({ params }: { params: { subrealmname: string } }) => {
       <div className="text-2xl">
         {`+${subrealmname}`}
       </div>
-      <ImageFromAtomicalId imageSrc={imageSrc} dataLoading={status === LOADING} />
+      <ImageFromNFTAtomicalId imageSrc={imageSrc} dataLoading={status === LOADING} />
       {
         status === LOADING ? (
           <Skeleton className="h-8 w-32" />

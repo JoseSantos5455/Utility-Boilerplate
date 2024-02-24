@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
-import { ImageFromAtomicalId } from "./ImageFromAtomicalId"
+import { ImageFromAtomicalId } from "./ImageFromNFTAtomicalId"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
