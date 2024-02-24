@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
-import { ImageFromAtomicalId } from "./ImageFromNFTAtomicalId"
+import { ImageFromNFTAtomicalId } from "./ImageFromNFTAtomicalId"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
@@ -65,7 +65,7 @@ export const Collections = ({collectionsObject}: {collectionsObject: any}) => {
               <div className="flex flex-row space-x-2 text-center justify-center">
                 {
                   elem.previews.map((preview: any) => (
-                    <ImageFromAtomicalId additionalClass="" key={`${name.toString()}${desc.toString()}${preview.img}`} imageSrc={preview.img.toString()} />
+                    <ImageFromNFTAtomicalId additionalClass="" key={`${name.toString()}${desc.toString()}${preview.img}`} imageSrc={preview.img.toString()} />
                   ))
                 }
               </div>
