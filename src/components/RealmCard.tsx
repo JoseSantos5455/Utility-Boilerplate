@@ -56,7 +56,7 @@ export const RealmCard = ({atomicalId, subrealmName, filter}: {atomicalId?: stri
           <CardTitle>{subrealmName}</CardTitle>
           <CardDescription>#{atomicalNumber}</CardDescription>
           <Button>
-            <a href={`/profile/${subrealmName}`} target="_blank">See more</a>
+            <a href={`/profile/${tlr}.${subrealmName}`} target="_blank">See more</a>
           </Button>
         </div>
       </CardHeader>

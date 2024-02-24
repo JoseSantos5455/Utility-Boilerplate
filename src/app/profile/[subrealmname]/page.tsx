@@ -4,11 +4,12 @@ import Image from "next/image";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "@/common/AppContextProvider";
 
-import { SubrealmPFP } from "../SubrealmPFP";
+import { ImageFromAtomicalId } from "../ImageFromAtomicalId";
 import { Wallets } from "../Wallets";
 import { Links } from "../Links";
 import { Collections } from "../Collections"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import axios from "axios";
 
@@ -41,6 +42,11 @@ const Profile = ({ params }: { params: { subrealmname: string } }) => {
   }
 
   const getDelegateIdFromAtomicalId = async (atomical_id: string) => {
+    if (!atomical_id || atomical_id === "undefined")
+      return {
+        verified: false,
+        delegateId: ""
+      }
     const url = `${APIEndpoint}/blockchain.atomicals.get_state?params=[\"${atomical_id}\"]`
     const response = await axios.get(url)
     if (response.data && response.data.success) {
@@ -63,41 +69,77 @@ const Profile = ({ params }: { params: { subrealmname: string } }) => {
     const response = await axios.get(url)
     if (response.data && response.data.success) {
       const { mint_data } = response.data.response.result
+      console.log(mint_data)
       const { name, desc, image, links, wallets, collections } = mint_data.fields
-      setProfileName(name)
-      setDescription(desc)
-      if (image.startsWith("atom:btc")) {
-        const splits = image.split(":")
-        setImageSrc(splits[splits.length - 1])
+
+      if (name)
+        setProfileName(name)
+      if (desc)
+        setDescription(desc)
+      if (image) {
+        if (image.startsWith("atom:btc")) {
+          const splits = image.split(":")
+          setImageSrc(splits[splits.length - 1])
+        }
       }
-      setLinksObject(links)
-      setWalletsObject(wallets)
-      setCollectionsObject(collections)
-      setStatus(FOUND)
+      if (links) 
+        setLinksObject(links)
+      if (wallets)
+        setWalletsObject(wallets)
+      if (collections)
+        setCollectionsObject(collections)
     }
-    else
-      setStatus(NOT_FOUND)
+  }
+
+  const getStateHistoryFromAtomicalId = async (atomicalId: string) => {
+    const url = `${APIEndpoint}/blockchain.atomicals.get_state_history?params=[\"${atomicalId}\"]`
+    const response = await axios.get(url)
+    if (response.data && response.data.success) {
+      const { history } = response.data.response.result.state
+      let arr: any[] = []
+      history.map((elem: any) => {
+        arr.push({
+          tx_num: elem.tx_num,
+          height: elem.height,
+          delegate: elem.data.d
+        })
+      })
+      arr.sort((elem1: any, elem2: any) => elem1.height - elem2.height)
+      return arr
+    }
+    return []
+  }
+
+  const getRecursiveProfileData = async (delegateArray: any[]) => {
+    let profileData: any = {}
+    for (let i = 0; i < delegateArray.length; i++) {
+      let { delegate }: { delegate: string} = delegateArray[i]
+      if (!delegate || delegate === "" || delegate === "undefined")
+        continue;
+      if ( delegate.startsWith("atom:btc") ) {
+        const splits = delegate.split(":")
+        delegate = splits[splits.length - 1]
+      }
+      await getProfileDataFromDelegateId(delegate)
+    }
+    setStatus(FOUND)
   }
 
   useEffect(() => {
     const fetchData = async () => {
-      const atomicalId = await getAtomicalIdFromRealmname(`${tlr}.${subrealmname}`)
+      // const atomicalId = await getAtomicalIdFromRealmname(`${tlr}.${subrealmname}`)
+      const atomicalId = await getAtomicalIdFromRealmname(`${subrealmname}`)
       if (atomicalId === "") {
         setStatus(NOT_FOUND)
       }
       else {
-        const { delegateId } = await getDelegateIdFromAtomicalId(atomicalId)
-        await getProfileDataFromDelegateId(delegateId)
+        const historyArray = await getStateHistoryFromAtomicalId(atomicalId)
+        await getRecursiveProfileData(historyArray)
       }
     }
     fetchData()
   }, [])
 
-  if (status === LOADING) {
-    return (
-      <Skeleton className="h-[277px] w-full rounded-xl" />
-    )
-  }
   if (status === NOT_FOUND) {
     return (
       <div>
@@ -106,13 +148,30 @@ const Profile = ({ params }: { params: { subrealmname: string } }) => {
     )
   }
   return (
-    <div className="mt-8 mx-8 flex flex-col items-center justify-around space-y-2 text-center">
-      <div>{`+${tlr}.${subrealmname}`}</div>
-      <SubrealmPFP imageSrc={imageSrc} />
-      <div>{profileName}</div>
-      <div>{description}</div>
+    <div className="lg:w-6/12 lg:mx-auto mt-8 mx-8 flex flex-col items-center justify-around gap-4 text-center">
+      <div className="text-2xl">
+        {`+${subrealmname}`}
+      </div>
+      <ImageFromAtomicalId imageSrc={imageSrc} dataLoading={status === LOADING} />
+      {
+        status === LOADING ? (
+          <Skeleton className="h-8 w-32" />
+        ) : (
+          <div className="text-2xl">{profileName}</div>
+        )
+      }
+      {
+        status === LOADING ? (
+          <Skeleton className="h-8 w-32" />
+        ) : (
+          <div>{description}</div>
+        )
+      }
+      <Separator />
       <Links linksObject={linksObject} />
+      <Separator />
       <Wallets wallets={walletsObject} />
+      <Separator />
       <Collections collectionsObject={collectionsObject} />
     </div>
   )

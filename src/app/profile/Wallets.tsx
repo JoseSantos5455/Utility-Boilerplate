@@ -16,17 +16,26 @@ export const Wallets = ({wallets}: {wallets: any}) => {
       })
       setWalletList(arr)
     }
-  }, [])
+  }, [wallets])
 
   return (
-    <div>
+    <div className="flex lg:flex-row flex-col gap-8">
       {
-        walletList && walletList.map((elem: any) => (
-          <div key={elem.chain.toString()}>
-            <div>{elem.chain.toString()}</div>
-            <div>{elem.address.address.toString()}</div>
-          </div>
-        ))
+        walletList && walletList.map((elem: any) => {
+          let coin = "btc"
+          if (elem && elem.chain)
+            coin = elem.chain.toString()
+          let addr = "??????????"
+          if (elem && elem.address && elem.address.address)
+            addr = elem.address.address.toString()
+          const short_addr = `${addr.substring(0, 5)}...${addr.substring(addr.length - 5, addr.length)}`
+          return (
+            <div key={`${coin}${addr}`} className="flex flex-row gap-2">
+              <div>{coin}</div>
+              <div>{short_addr}</div>
+            </div>
+          )
+        })
       }
     </div>
   )

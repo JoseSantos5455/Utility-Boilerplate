@@ -1,4 +1,6 @@
 "use client"
+import Link from "next/link"
+import { DynamicIcon } from "./DynamicIcon"
 import { useEffect, useState } from "react"
 
 export const Links = ({linksObject}: {linksObject: any}) => {
@@ -22,17 +24,17 @@ export const Links = ({linksObject}: {linksObject: any}) => {
       })
       setLinkList(arr)
     }
-  }, [])
+  }, [linksObject])
 
   return (
-    <div>
+    <div className="flex lg:flex-row flex-col gap-8">
       {
         linkList && linkList.map((elem: any) => (
-          <div key={elem.type}>
-            <div>{elem.name}</div>
-            <div>{elem.url}</div>
-            <div>{elem.type}</div>
-          </div>
+          <Link href={elem.url} target="_blank" key={`${elem.type}${elem.url}${elem.type}`}>
+            <span className="flex flex-row items-center gap-2">
+              <DynamicIcon url={elem.url} type={elem.type} />{elem.name}
+            </span>
+          </Link>
         ))
       }
     </div>
