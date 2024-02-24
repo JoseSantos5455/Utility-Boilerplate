@@ -11,6 +11,7 @@ export const ImageFromRealmAtomicalId = ({ atomicalId = "", additionalClass = ""
 
   const [apiResponse, setApiResponse] = useState<any>(null);
   const [isSvg, setIsSvg] = useState(false);
+  const [finding, setFinding] = useState(true)
   const [imageSrc, setImageSrc] = useState("")
 
   const getStateHistoryFromAtomicalId = async (atomicalId: string) => {
@@ -43,6 +44,7 @@ export const ImageFromRealmAtomicalId = ({ atomicalId = "", additionalClass = ""
       }
       await getProfileDataFromDelegateId(delegate)
     }
+    setFinding(false)
   }
 
   const getProfileDataFromDelegateId = async (delegateId: string) => {
@@ -130,7 +132,8 @@ export const ImageFromRealmAtomicalId = ({ atomicalId = "", additionalClass = ""
         
       }
     }
-    refreshImage()
+    if(!finding)
+      refreshImage()
   }, [imageSrc])
 
   return (
