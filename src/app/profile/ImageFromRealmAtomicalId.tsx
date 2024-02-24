@@ -71,8 +71,9 @@ export const ImageFromRealmAtomicalId = ({ atomicalId = "", additionalClass = ""
       const historyArray = await getStateHistoryFromAtomicalId(atomicalId)
       getRecursiveProfileData(historyArray)
     }
-    fetchData();
-  }, [])
+    if (atomicalId !== "")
+      fetchData();
+  }, [atomicalId])
 
   useEffect(() => {
     const refreshImage = async () => {

@@ -52,7 +52,14 @@ export const RealmCard = ({atomicalId, subrealmName, filter}: {atomicalId?: stri
   return (
     <Card style={{display: `${(status === "verified" && subrealmName && subrealmName.indexOf(filter) > -1) ? "block" : "none"}`}} className={`flex flex-col items-center`}>
       <CardHeader>
-        <ImageFromRealmAtomicalId atomicalId={atomicalId || ""}  />
+        {
+          status === "verified" ? (
+            <ImageFromRealmAtomicalId atomicalId={atomicalId || ""}  />
+          ) : (
+            <></>
+            // <ImageFromRealmAtomicalId atomicalId={""} />
+          )
+        }
         <div className="flex flex-col items-center justify-around space-y-2">
           <CardTitle>{subrealmName}</CardTitle>
           <CardDescription>#{atomicalNumber}</CardDescription>
