@@ -27,14 +27,14 @@ export const RealmCard = ({atomicalId, subrealmName, filter}: {atomicalId?: stri
 
   useEffect(() => {
     const fetchData = async () => await getDetailedInfoFromAtomicalId()
-    if (!atomicalId?.startsWith("fake-skeleton")) {
+    if (atomicalId && !atomicalId?.startsWith("fake-skeleton") && atomicalId !== "null" && atomicalId !== "undefined") {
       fetchData()
     }
   }, [])
 
   const getDetailedInfoFromAtomicalId = async () => {
     setLoading(true)
-    const APIEndpoint = `https://ep.atomicals.xyz${network === "testnet" ? "/testnet" : ""}/proxy/blockchain.atomicals.get?params=[\"${atomicalId}\"]`
+    const APIEndpoint = `${network === "testnet" ? process.env.NEXT_PUBLIC_CURRENT_PROXY_TESTNET : process.env.NEXT_PUBLIC_CURRENT_PROXY}/blockchain.atomicals.get?params=[\"${atomicalId}\"]`
     const response = await axios.get(APIEndpoint)
     if (response.data && response.data.success) {
       const { atomical_id, atomical_number, $request_subrealm, $request_subrealm_status } = response.data.response.result

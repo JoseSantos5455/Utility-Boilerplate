@@ -24,10 +24,10 @@ export default function Explore() {
       await fetchSubrealms()
     }
     firstFetch()
-  }, [])
+  }, [network])
 
   const getAtomicalIdFromTLR = async () => {
-    const APIEndpoint = `https://ep.atomicals.xyz${network === "testnet" ? "/testnet" : ""}/proxy/blockchain.atomicals.get_realm_info?params=[\"${tlr}\"]`
+    const APIEndpoint = `${network === "testnet" ? process.env.NEXT_PUBLIC_CURRENT_PROXY_TESTNET : process.env.NEXT_PUBLIC_CURRENT_PROXY}/blockchain.atomicals.get_realm_info?params=[\"${tlr}\"]`
     const response = await axios.get(APIEndpoint)
     if (response.data && response.data.success) {
       const { atomical_id } = response.data.response.result
@@ -43,7 +43,8 @@ export default function Explore() {
     let found = false
     do {
       num ++
-      const APIEndpoint = `https://ep.atomicals.xyz${network === "testnet" ? "/testnet" : ""}/proxy/blockchain.atomicals.find_subrealms?params=[\"${tlr_id}\"]`
+      console.log(num)
+      const APIEndpoint = `${network === "testnet" ? process.env.NEXT_PUBLIC_CURRENT_PROXY_TESTNET : process.env.NEXT_PUBLIC_CURRENT_PROXY}/blockchain.atomicals.find_subrealms?params=[\"${tlr_id}\"]`
       try {
         const response = await axios.get(APIEndpoint)
         if (response.data && response.data.success) {
@@ -58,11 +59,10 @@ export default function Explore() {
         if (found)
           setPageState('ready')
       }
-    } while (!found || num < 5)
+    } while (!found && num < 5)
 
     if (!found) {
       setPageState('ready')
-      alert('Cannot fetch !')
     }
   }
 
