@@ -134,11 +134,12 @@ const Profile = ({ params }: { params: { subrealmname: string } }) => {
       }
       else {
         const historyArray = await getStateHistoryFromAtomicalId(atomicalId)
+        console.log(historyArray)
         await getRecursiveProfileData(historyArray)
       }
     }
     fetchData()
-  }, [])
+  }, [network])
 
   if (status === NOT_FOUND) {
     return (

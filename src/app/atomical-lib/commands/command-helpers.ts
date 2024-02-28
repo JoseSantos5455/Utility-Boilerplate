@@ -185,6 +185,36 @@ export const prepareCommitRevealConfig = (opType: 'nft' | 'ft' | 'dft' | 'dmt' |
     }
 }
 
+export const prepareCommitRevealConfigWithChildXOnlyPubkey = (opType: 'nft' | 'ft' | 'dft' | 'dmt' | 'sl' | 'x' | 'y' | 'mod' | 'evt' | 'dat', childNodeXOnlyPubkey: any, atomicalsPayload: AtomicalsPayload, log = true) => {
+    const revealScript = appendMintUpdateRevealScriptWithChildXOnlyPubkey(opType, childNodeXOnlyPubkey, atomicalsPayload, log);
+    const hashscript = script.fromASM(revealScript);
+    const scriptTree = {
+        output: hashscript,
+    };
+    const hash_lock_script = hashscript;
+    const hashLockRedeem = {
+        output: hash_lock_script,
+        redeemVersion: 192,
+    };
+    const scriptP2TR = payments.p2tr({
+        internalPubkey: childNodeXOnlyPubkey,
+        scriptTree,
+        network: NETWORK
+    });
+
+    const hashLockP2TR = payments.p2tr({
+        internalPubkey: childNodeXOnlyPubkey,
+        scriptTree,
+        redeem: hashLockRedeem,
+        network: NETWORK
+    });
+    return {
+        scriptP2TR,
+        hashLockP2TR,
+        hashscript
+    }
+}
+
 /**
  * temporary
  * @param file 
@@ -546,6 +576,18 @@ export class AtomicalsPayload {
 
 export const appendMintUpdateRevealScript = (opType: 'nft' | 'ft' | 'dft' | 'dmt' | 'sl' | 'x' | 'y' | 'mod' | 'evt' | 'dat', keypair: KeyPairInfo, payload: AtomicalsPayload, log: boolean = true) => {
     let ops = `${keypair.childNodeXOnlyPubkey.toString('hex')} OP_CHECKSIG OP_0 OP_IF `;
+    ops += `${Buffer.from(ATOMICALS_PROTOCOL_ENVELOPE_ID, 'utf8').toString('hex')}`;
+    ops += ` ${Buffer.from(opType, 'utf8').toString('hex')}`;
+    const chunks = chunkBuffer(payload.cbor(), 520);
+    for (let chunk of chunks) {
+        ops += ` ${chunk.toString('hex')}`;
+    }
+    ops += ` OP_ENDIF`;
+    return ops;
+};
+
+export const appendMintUpdateRevealScriptWithChildXOnlyPubkey = (opType: 'nft' | 'ft' | 'dft' | 'dmt' | 'sl' | 'x' | 'y' | 'mod' | 'evt' | 'dat', childNodeXOnlyPubkey: any, payload: AtomicalsPayload, log: boolean = true) => {
+    let ops = `${childNodeXOnlyPubkey.toString('hex')} OP_CHECKSIG OP_0 OP_IF `;
     ops += `${Buffer.from(ATOMICALS_PROTOCOL_ENVELOPE_ID, 'utf8').toString('hex')}`;
     ops += ` ${Buffer.from(opType, 'utf8').toString('hex')}`;
     const chunks = chunkBuffer(payload.cbor(), 520);

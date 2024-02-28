@@ -13,6 +13,7 @@ import { NETWORK } from "../commands/command-helpers"
 const bip32 = BIP32Factory(ecc);
 
 export const toXOnly = (publicKey: any) => {
+    console.log(publicKey)
     return publicKey.slice(1, 33);
 }
 const bip39 = require('bip39');
