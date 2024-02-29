@@ -65,6 +65,8 @@ export default function Profile () {
           }
         })
         setRealmList(realms)
+        if (realms.length > 0)
+          setCurrentRealm(realms[0])
         setSubrealmList(subrealms)
         setPfpNftList(pfps)
       }
@@ -134,7 +136,7 @@ export default function Profile () {
           ))
         }
       </div>
-      <Select onValueChange={(val: any) => setCurrentRealm(val)}>
+      <Select value={currentRealm} onValueChange={(val: any) => setCurrentRealm(val)}>
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Theme" />
         </SelectTrigger>

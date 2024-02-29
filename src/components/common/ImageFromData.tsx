@@ -14,8 +14,12 @@ export default function ImageFromData({data, key}: {data: any, key?: any}) {
         Object.keys(fields).map((objKey: string) => {
           if (objKey !== "args" && fields[objKey]["$b"]) {
             setIsSvg(objKey.endsWith(".svg"))
-            const { $d } = fields[objKey]["$b"]
-            setImageData(Buffer.from($d, 'hex').toString('base64'))
+            if (typeof fields[objKey]["$b"] === "object") {
+              const { $d } = fields[objKey]["$b"]
+              setImageData(Buffer.from($d, 'hex').toString('base64'))
+            }
+            else if (typeof fields[objKey]["$b"] === "string")
+              setImageData(Buffer.from(fields[objKey]["$b"], 'hex').toString('base64'))
           }
         })
       }
