@@ -2,18 +2,6 @@
 import { AppContext } from "@/providers/AppContextProvider"
 import { WalletContext } from "@/providers/WalletContextProvider"
 
-// import axios from "axios"
-// import * as ecc from '@bitcoinerlab/secp256k1';
-// const bitcoin = require('bitcoinjs-lib');
-// bitcoin.initEccLib(ecc);
-
-// const tinysecp: TinySecp256k1Interface = ecc;
-// import { ECPairFactory, ECPairAPI, TinySecp256k1Interface } from "ecpair"
-// const ECPair: ECPairAPI = ECPairFactory(tinysecp);
-// import * as bitcoin from 'bitcoinjs-lib'
-// const ECPair: ECPairAPI = ECPairFactory(tinysecp);
-// { Psbt, payments, networks } = bitcoin
-
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -38,6 +26,8 @@ import { getKeypairInfo } from "../atomical-lib/utils/address-keypair-path"
 import { SetProfileCommand } from "../atomical-lib/commands/set-profile-command"
 import getStateHistoryFromAtomicalId from "@/lib/get-state-history-from-atomical-id";
 import getAtomicalIdFromRealmname from "@/lib/get-atomical-id-from-realmname";
+import { ImageFromUrn } from "@/components/profile/ImageFromUrn"
+import ImageFromData from "@/components/common/ImageFromData"
 
 export default function Profile () {
   const { network, showAlert, showError, tlr } = useContext(AppContext)
@@ -48,14 +38,6 @@ export default function Profile () {
   const [subrealmList, setSubrealmList] = useState<any>([])
   const [pfpNftList, setPfpNftList] = useState<any>([])
   const [currentRealm, setCurrentRealm] = useState("")
-
-  // const [pfpId, setPfpId] = useState("")
-  // const [userName, setUserName] = useState("")
-  // const [userDescription, setUserDescription] = useState("")
-  // const [ids, setIds] = useState([])
-  // const [wallets, setWallets] = useState([])
-  // const [links, setLinks] = useState([])
-  // const [collections, setCollections] = useState([])
 
   useEffect(() => {
 
@@ -78,7 +60,7 @@ export default function Profile () {
               if ( $request_dmitem_status.status === "verified") pfps.push(elem)
             }
             else if (!subtype) {    // this is not collection, just solo nft
-
+              pfps.push(elem)
             }
           }
         })
@@ -90,11 +72,6 @@ export default function Profile () {
 
     getAtomicals()
 
-    // const getProfile = async () => {
-    //   const atomicalId = await getAtomicalIdFromRealmname("dntest1", network)
-    //   const his = await getStateHistoryFromAtomicalId(atomicalId, network)
-    //   console.log(his)
-    // }
   }, [walletData, network])
 
   useEffect(() => {
@@ -124,7 +101,7 @@ export default function Profile () {
     try {
       await atomicals.electrumApi.open();
       const command: CommandInterface = new SetProfileCommand(atomicals.electrumApi, { satsbyte: 10 }, atomicalId, dummyData, publicKey);
-      const res = await command.run(signTheP);
+      const res = await command.run(signPsbts);
     } catch (error: any) {
       console.log(error)
     } finally {
@@ -132,35 +109,15 @@ export default function Profile () {
     }
   }
 
-  const signTheP = async (toSignPsbt: any) => {
+  const signPsbts = async (toSignPsbt: any) => {
     const signedPsbt = await window.wizz.signPsbt(toSignPsbt)
     await window.wizz.pushPsbt(signedPsbt)
     console.log(signedPsbt)
   }
 
-  // const setTo = (tlrUTXO: any) => {
-  //   if (!tlrUTXO) {
-  //     showError("Unknown error occured...")
-  //     return
-  //   }
-  //   console.log(tlrUTXO)
-
-
-  // }
-
-  // const test = async () => {
-  //   const publicKey = await window.wizz.getPublicKey()
-  //   const childXOnlyPublicKey = Buffer.from(publicKey, 'hex').slice(1, 33)
-  //   console.log(childXOnlyPublicKey)
-
-  //   const testPairRaw = ECPair.fromPublicKey(publicKey)
-  //   const fundingKeypair = getKeypairInfo(testPairRaw);
-  //   console.log(fundingKeypair)
-  // }
-
   if (!walletData.connected) {
     return (
-      <div>
+      <div className="text-center justify-center">
         Connect your wallet to continue...
       </div>
     )
@@ -172,9 +129,8 @@ export default function Profile () {
       <div>
         {
           pfpNftList.map((elem: any) => (
-            <div>
-              {elem.atomical_id}
-            </div>
+            <ImageFromData data={elem} key={elem.atomical_id} />
+            // <ImageFromUrn  />
           ))
         }
       </div>
@@ -196,76 +152,12 @@ export default function Profile () {
         </SelectContent>
       </Select>
 
-      {/* <Button onClick={openUpdateDialog}>Update my Profile</Button> */}
-      {/* <Button onClick={test}>Test</Button> */}
-      {/* <Button onClick={updateProfile}>Update</Button> */}
-      {/* <Button onClick={updateProfile_}>updateProfile_</Button> */}
-      {/* <div className="mt-10">
-        {
-          TLRList.map((elem: any) => (
-            <Button onClick={() => setTo(elem.utxo)}>set to +{elem.$full_realm_name}</Button>
-          ))
-        }
-      </div> */}
       <Dialog open={isUpdateDialogOpen} onOpenChange={onCloseUpdateDialog} modal>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Update your profile</DialogTitle>
             <DialogDescription>
-              {/* <div>
-                <Input value={pfpId}></Input>
-              </div>
-              <div>
-                <Input value={userName}></Input>
-              </div>
-              <div>
-                <Input value={userDescription}></Input>
-              </div>
-              {
-                ids.map((id: any) => (
-                  <div>
-                    {id.t}: {id.v}
-                  </div>
-                ))
-              }
-              {
-                wallets.map((wallet: any) => (
-                  <div>
-                    {wallet.type}: {wallet.address}
-                  </div>
-                ))
-              }
-              {
-                links.map((group: any) => (
-                  <div>
-                    {
-                      group.items.map((item: any) => (
-                        <div>
-                          {item.type}: {item.name}: {item.url}
-                        </div>
-                      ))
-                    }
-                  </div>
-                ))
-              }
-              {
-                collections.map((container: any) => (
-                  <div>
-                    <div>
-                      {container.name}
-                    </div>
-                    <div>
-                      {container.image}
-                    </div>
-                    <div>
-                      {container.desc}
-                    </div>
-                    <div>
-                      {container.meta}
-                    </div>
-                  </div>
-                ))
-              } */}
+              
             </DialogDescription>
           </DialogHeader>
         </DialogContent>
