@@ -23,8 +23,10 @@ export default function Explore() {
 
   useEffect(() => {
     const firstFetch = async () => {
+      setPageState('loading')
       const subrealms = await getSubrealmsFromTLR(tlr, network)
       setItems(subrealms)
+      setPageState('ready')
     }
     firstFetch()
   }, [network])

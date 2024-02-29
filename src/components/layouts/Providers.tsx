@@ -3,7 +3,7 @@ import { Header } from "@/components/layouts/Header";
 import { Footer } from "@/components/layouts/Footer";
 import WalletContextProvider from "@/providers/WalletContextProvider";
 import AppContextProvider from "@/providers/AppContextProvider"
-import { ThemeProvider } from "@/components/layouts/theme-provider";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 
 export const Providers = ({
   children,

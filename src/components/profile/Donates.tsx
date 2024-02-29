@@ -1,27 +1,27 @@
 "use client"
 import { useEffect, useState } from "react"
 
-export const Wallets = ({wallets}: {wallets: any}) => {
+export const Donates = ({donates}: {donates: any}) => {
 
-  const [walletList, setWalletList] = useState<any[]>([])
+  const [donateList, setDonateList] = useState<any[]>([])
 
   useEffect(() => {
-    if (wallets) {
+    if (donates) {
       let arr: any = []
-      Object.keys(wallets).map((chain: any) => {
+      Object.keys(donates).map((chain: any) => {
         arr.push({
           chain,
-          address: wallets[chain]
+          address: donates[chain]
         })
       })
-      setWalletList(arr)
+      setDonateList(arr)
     }
-  }, [wallets])
+  }, [donates])
 
   return (
     <div className="flex lg:flex-row flex-col gap-8">
       {
-        walletList && walletList.map((elem: any) => {
+        donateList && donateList.map((elem: any) => {
           let coin = "btc"
           if (elem && elem.chain)
             coin = elem.chain.toString()

@@ -5,7 +5,7 @@ import { useContext, useEffect, useState } from "react";
 import { AppContext } from "@/providers/AppContextProvider";
 
 import { ImageFromNFTAtomicalId } from "../../../components/profile/ImageFromNFTAtomicalId";
-import { Wallets } from "../../../components/profile/Wallets";
+import { Donates } from "../../../components/profile/Donates";
 import { Links } from "../../../components/profile/Links";
 import { Collections } from "../../../components/profile/Collections"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -171,7 +171,7 @@ const Profile = ({ params }: { params: { subrealmname: string } }) => {
       <Separator />
       <Links linksObject={linksObject} />
       <Separator />
-      <Wallets wallets={walletsObject} />
+      <Donates donates={walletsObject} />
       <Separator />
       <Collections collectionsObject={collectionsObject} />
     </div>
