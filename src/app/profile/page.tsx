@@ -2,19 +2,27 @@
 import { AppContext } from "@/providers/AppContextProvider"
 import { WalletContext } from "@/providers/WalletContextProvider"
 
-import axios from "axios"
-import * as ecc from '@bitcoinerlab/secp256k1';
-const bitcoin = require('bitcoinjs-lib');
-bitcoin.initEccLib(ecc);
+// import axios from "axios"
+// import * as ecc from '@bitcoinerlab/secp256k1';
+// const bitcoin = require('bitcoinjs-lib');
+// bitcoin.initEccLib(ecc);
 
-const tinysecp: TinySecp256k1Interface = ecc;
-import { ECPairFactory, ECPairAPI, TinySecp256k1Interface } from "ecpair"
-const ECPair: ECPairAPI = ECPairFactory(tinysecp);
+// const tinysecp: TinySecp256k1Interface = ecc;
+// import { ECPairFactory, ECPairAPI, TinySecp256k1Interface } from "ecpair"
+// const ECPair: ECPairAPI = ECPairFactory(tinysecp);
 // import * as bitcoin from 'bitcoinjs-lib'
 // const ECPair: ECPairAPI = ECPairFactory(tinysecp);
 // { Psbt, payments, networks } = bitcoin
 
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
 import {
   Dialog,
   DialogContent,
@@ -37,7 +45,9 @@ export default function Profile () {
 
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false)
   const [realmList, setRealmList] = useState<any>([])
+  const [subrealmList, setSubrealmList] = useState<any>([])
   const [pfpNftList, setPfpNftList] = useState<any>([])
+  const [currentRealm, setCurrentRealm] = useState("")
 
   // const [pfpId, setPfpId] = useState("")
   // const [userName, setUserName] = useState("")
@@ -48,17 +58,48 @@ export default function Profile () {
   // const [collections, setCollections] = useState([])
 
   useEffect(() => {
-    if (!walletData.connected) {
-      showAlert("Connect your wallet to view your profile.")
-    }
-    const clientAddress = walletData.primary_addr
 
-    const getProfile = async () => {
-      const atomicalId = await getAtomicalIdFromRealmname("dntest1", network)
-      const his = await getStateHistoryFromAtomicalId(atomicalId, network)
-      console.log(his)
+    const getAtomicals = async () => {
+      if (walletData.connected) {
+        const { atomicalNFTs }: { atomicalNFTs: any[] } = await window.wizz.getAtomicalsBalance()
+        console.log(atomicalNFTs)
+
+        let pfps: any[] = [], realms: any[] = [], subrealms: any[] = []
+        atomicalNFTs.map((elem: any) => {
+          const { type, subtype, confirmed, $request_dmitem_status, $request_subrealm_status, $request_realm_status} = elem
+          if (type === "NFT") {
+            if (subtype === "realm") {
+              if ( $request_realm_status.status === "verified") realms.push(elem)
+            }
+            else if (subtype === "subrealm") {
+              if ( $request_subrealm_status.status === "verified") subrealms.push(elem)
+            }
+            else if (subtype === "dmitem") {
+              if ( $request_dmitem_status.status === "verified") pfps.push(elem)
+            }
+            else if (!subtype) {    // this is not collection, just solo nft
+
+            }
+          }
+        })
+        setRealmList(realms)
+        setSubrealmList(subrealms)
+        setPfpNftList(pfps)
+      }
     }
-  }, [walletData])
+
+    getAtomicals()
+
+    // const getProfile = async () => {
+    //   const atomicalId = await getAtomicalIdFromRealmname("dntest1", network)
+    //   const his = await getStateHistoryFromAtomicalId(atomicalId, network)
+    //   console.log(his)
+    // }
+  }, [walletData, network])
+
+  useEffect(() => {
+    console.log(currentRealm)
+  }, [currentRealm])
 
   const openUpdateDialog = () => {
     setIsUpdateDialogOpen(true)
@@ -97,33 +138,68 @@ export default function Profile () {
     console.log(signedPsbt)
   }
 
-  const setTo = (tlrUTXO: any) => {
-    if (!tlrUTXO) {
-      showError("Unknown error occured...")
-      return
-    }
-    console.log(tlrUTXO)
+  // const setTo = (tlrUTXO: any) => {
+  //   if (!tlrUTXO) {
+  //     showError("Unknown error occured...")
+  //     return
+  //   }
+  //   console.log(tlrUTXO)
 
 
-  }
+  // }
 
-  const test = async () => {
-    const publicKey = await window.wizz.getPublicKey()
-    const childXOnlyPublicKey = Buffer.from(publicKey, 'hex').slice(1, 33)
-    console.log(childXOnlyPublicKey)
+  // const test = async () => {
+  //   const publicKey = await window.wizz.getPublicKey()
+  //   const childXOnlyPublicKey = Buffer.from(publicKey, 'hex').slice(1, 33)
+  //   console.log(childXOnlyPublicKey)
 
-    const testPairRaw = ECPair.fromPublicKey(publicKey)
-    const fundingKeypair = getKeypairInfo(testPairRaw);
-    console.log(fundingKeypair)
+  //   const testPairRaw = ECPair.fromPublicKey(publicKey)
+  //   const fundingKeypair = getKeypairInfo(testPairRaw);
+  //   console.log(fundingKeypair)
+  // }
+
+  if (!walletData.connected) {
+    return (
+      <div>
+        Connect your wallet to continue...
+      </div>
+    )
   }
 
   return (
     <div className="text-center justify-center">
-      My profile - {walletData.primary_addr}
-      <Button onClick={openUpdateDialog}>Update my Profile</Button>
-      <Button onClick={test}>Test</Button>
+      {/* My profile - {walletData.primary_addr} */}
+      <div>
+        {
+          pfpNftList.map((elem: any) => (
+            <div>
+              {elem.atomical_id}
+            </div>
+          ))
+        }
+      </div>
+      <Select onValueChange={(val: any) => setCurrentRealm(val)}>
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Theme" />
+        </SelectTrigger>
+        <SelectContent>
+          {
+            realmList.map((elem: any) => (
+              <SelectItem key={elem.atomical_id} value={`\"${elem.atomical_id}\"`}>{elem.$full_realm_name}</SelectItem>
+            ))
+          }
+          {
+            subrealmList.map((elem: any) => (
+              <SelectItem key={elem.atomical_id} value={`\"${elem.atomical_id}\"`}>{elem.$full_realm_name}</SelectItem>
+            ))
+          }
+        </SelectContent>
+      </Select>
+
+      {/* <Button onClick={openUpdateDialog}>Update my Profile</Button> */}
+      {/* <Button onClick={test}>Test</Button> */}
       {/* <Button onClick={updateProfile}>Update</Button> */}
-      <Button onClick={updateProfile_}>updateProfile_</Button>
+      {/* <Button onClick={updateProfile_}>updateProfile_</Button> */}
       {/* <div className="mt-10">
         {
           TLRList.map((elem: any) => (
