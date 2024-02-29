@@ -1,11 +1,9 @@
 "use client"
-import { AppContext } from "@/common/AppContextProvider"
-import { WalletContext } from "@/common/WalletContextProvider"
+import { AppContext } from "@/providers/AppContextProvider"
+import { WalletContext } from "@/providers/WalletContextProvider"
 
 import axios from "axios"
-import { AtomicalsPayload, prepareCommitRevealConfigWithChildXOnlyPubkey } from "../atomical-lib/commands/command-helpers"
 import * as ecc from '@bitcoinerlab/secp256k1';
-import { Psbt, script } from 'bitcoinjs-lib'
 const bitcoin = require('bitcoinjs-lib');
 bitcoin.initEccLib(ecc);
 
@@ -26,27 +24,28 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { useContext, useEffect, useState } from "react"
-import { BASE_BYTES, FeeCalculations, INPUT_BYTES_BASE, OUTPUT_BYTES_BASE } from "../atomical-lib/utils/atomical-operation-builder"
 import { Atomicals, ElectrumApi } from "../atomical-lib"
 import { CommandInterface } from "../atomical-lib/commands/command.interface"
 import { getKeypairInfo } from "../atomical-lib/utils/address-keypair-path"
 import { SetProfileCommand } from "../atomical-lib/commands/set-profile-command"
+import getStateHistoryFromAtomicalId from "@/lib/get-state-history-from-atomical-id";
+import getAtomicalIdFromRealmname from "@/lib/get-atomical-id-from-realmname";
 
 export default function Profile () {
   const { network, showAlert, showError, tlr } = useContext(AppContext)
   const { walletData } = useContext(WalletContext)
-  const APIEndpoint = network === 'testnet' ? process.env.NEXT_PUBLIC_CURRENT_PROXY_TESTNET : process.env.NEXT_PUBLIC_CURRENT_PROXY
 
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false)
-  const [TLRList, setTLRList] = useState<any>([])
+  const [realmList, setRealmList] = useState<any>([])
+  const [pfpNftList, setPfpNftList] = useState<any>([])
 
-  const [pfpId, setPfpId] = useState("")
-  const [userName, setUserName] = useState("")
-  const [userDescription, setUserDescription] = useState("")
-  const [ids, setIds] = useState([])
-  const [wallets, setWallets] = useState([])
-  const [links, setLinks] = useState([])
-  const [collections, setCollections] = useState([])
+  // const [pfpId, setPfpId] = useState("")
+  // const [userName, setUserName] = useState("")
+  // const [userDescription, setUserDescription] = useState("")
+  // const [ids, setIds] = useState([])
+  // const [wallets, setWallets] = useState([])
+  // const [links, setLinks] = useState([])
+  // const [collections, setCollections] = useState([])
 
   useEffect(() => {
     if (!walletData.connected) {
@@ -55,33 +54,11 @@ export default function Profile () {
     const clientAddress = walletData.primary_addr
 
     const getProfile = async () => {
-      const atomicalId = await getAtomicalIdFromRealmname("dntest1")
-      const his = await getStateHistoryFromAtomicalId(atomicalId)
+      const atomicalId = await getAtomicalIdFromRealmname("dntest1", network)
+      const his = await getStateHistoryFromAtomicalId(atomicalId, network)
       console.log(his)
     }
-    // getProfile()
-
   }, [walletData])
-
-  const getAtomicalIdFromRealmname = async (str: string) => {
-    const url = `${APIEndpoint}/blockchain.atomicals.get_realm_info?params=[\"${str}\"]`
-    const response = await axios.get(url)
-    if (response.data && response.data.success) {
-      const { atomical_id } = response.data.response.result
-      return atomical_id
-    }
-    return ""
-  }
-
-  const getStateHistoryFromAtomicalId = async (atomicalId: string) => {
-    const url = `${APIEndpoint}/blockchain.atomicals.get_state_history?params=[\"${atomicalId}\"]`
-    const response = await axios.get(url)
-    if (response.data && response.data.success) {
-      const { history } = response.data.response.result.state
-      return history
-    }
-    return []
-  }
 
   const openUpdateDialog = () => {
     setIsUpdateDialogOpen(true)
@@ -93,35 +70,7 @@ export default function Profile () {
 
   const dummyData = {
     "d": "2435aa7c81bacaf06d7ce74f8e44406730a318a1419cce98530ea0eae15a3c93i0"
-    // "v": "1.2",
-    // "name": "dntest1-001",
-    // "image": "atom:btc:id:<atomicalId>/image.jpg",
-    // "desc": "Lorem ipsum dolor sit amet...",
-    // "ids": {
-    //   "0": {
-    //     "t": "realm",
-    //     "v": "myrealmname"
-    //   }
-    // },
-    // "wallets": {
-    //   "btc": {
-    //     "address": "btc address to receive donations"
-    //   }
-    // },
-    // "links": {
-    //   "0": {
-    //     "group": "social",
-    //     "items": {
-    //       "0": {
-    //         "type": "x",
-    //         "name": "@loremipsum9872",
-    //         "url": "https://x.com/loremipsum9872"
-    //       }
-    //     }
-    //   }
-    // }
   }
-
 
   const updateProfile_ = async () => {  
     const publicKey = await window.wizz.getPublicKey()
@@ -175,19 +124,19 @@ export default function Profile () {
       <Button onClick={test}>Test</Button>
       {/* <Button onClick={updateProfile}>Update</Button> */}
       <Button onClick={updateProfile_}>updateProfile_</Button>
-      <div className="mt-10">
+      {/* <div className="mt-10">
         {
           TLRList.map((elem: any) => (
             <Button onClick={() => setTo(elem.utxo)}>set to +{elem.$full_realm_name}</Button>
           ))
         }
-      </div>
+      </div> */}
       <Dialog open={isUpdateDialogOpen} onOpenChange={onCloseUpdateDialog} modal>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Update your profile</DialogTitle>
             <DialogDescription>
-              <div>
+              {/* <div>
                 <Input value={pfpId}></Input>
               </div>
               <div>
@@ -240,7 +189,7 @@ export default function Profile () {
                     </div>
                   </div>
                 ))
-              }
+              } */}
             </DialogDescription>
           </DialogHeader>
         </DialogContent>

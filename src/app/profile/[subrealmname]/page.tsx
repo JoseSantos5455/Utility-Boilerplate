@@ -2,12 +2,12 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useContext, useEffect, useState } from "react";
-import { AppContext } from "@/common/AppContextProvider";
+import { AppContext } from "@/providers/AppContextProvider";
 
-import { ImageFromNFTAtomicalId } from "../ImageFromNFTAtomicalId";
-import { Wallets } from "../Wallets";
-import { Links } from "../Links";
-import { Collections } from "../Collections"
+import { ImageFromNFTAtomicalId } from "../../../components/profile/ImageFromNFTAtomicalId";
+import { Wallets } from "../../../components/profile/Wallets";
+import { Links } from "../../../components/profile/Links";
+import { Collections } from "../../../components/profile/Collections"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";

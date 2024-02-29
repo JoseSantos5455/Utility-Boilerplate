@@ -1,8 +1,8 @@
 "use client"
 import { Header } from "@/components/layouts/Header";
 import { Footer } from "@/components/layouts/Footer";
-import WalletContextProvider from "@/common/WalletContextProvider";
-import AppContextProvider from "@/common/AppContextProvider"
+import WalletContextProvider from "@/providers/WalletContextProvider";
+import AppContextProvider from "@/providers/AppContextProvider"
 import { ThemeProvider } from "@/components/layouts/theme-provider";
 
 export const Providers = ({

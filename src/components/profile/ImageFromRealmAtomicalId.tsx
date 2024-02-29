@@ -1,19 +1,84 @@
-import Image from "next/image"
 import { useContext, useEffect, useState } from "react"
-import { AppContext } from "@/common/AppContextProvider"
-import { Skeleton } from "@/components/ui/skeleton"
+import { AppContext } from "@/providers/AppContextProvider"
 
-export const ImageFromNFTAtomicalId = ({ imageSrc, dataLoading, additionalClass = "", isStorage = false }: { imageSrc: string, dataLoading?: boolean, additionalClass?: string, isStorage?: boolean }) => {
+import Image from "next/image"
+import { Skeleton } from "@/components/ui/skeleton"
+import axios from "axios"
+
+export const ImageFromRealmAtomicalId = ({ atomicalId = "", additionalClass = "" }: { atomicalId: string, additionalClass?: string }) => {
 
   const { network } = useContext(AppContext)
   const APIEndpoint = network === 'testnet' ? process.env.NEXT_PUBLIC_CURRENT_PROXY_TESTNET : process.env.NEXT_PUBLIC_CURRENT_PROXY
 
   const [apiResponse, setApiResponse] = useState<any>(null);
   const [isSvg, setIsSvg] = useState(false);
+  const [finding, setFinding] = useState(true)
+  const [imageSrc, setImageSrc] = useState("")
+
+  const getStateHistoryFromAtomicalId = async (atomicalId: string) => {
+    const url = `${APIEndpoint}/blockchain.atomicals.get_state_history?params=[\"${atomicalId}\"]`
+    const response = await axios.get(url)
+    if (response.data && response.data.success) {
+      const { history } = response.data.response.result.state
+      let arr: any[] = []
+      history.map((elem: any) => {
+        arr.push({
+          tx_num: elem.tx_num,
+          height: elem.height,
+          delegate: elem.data.d
+        })
+      })
+      arr.sort((elem1: any, elem2: any) => elem1.height - elem2.height)
+      return arr
+    }
+    return []
+  }
+
+  const getRecursiveProfileData = async (delegateArray: any[]) => {
+    for (let i = 0; i < delegateArray.length; i++) {
+      let { delegate }: { delegate: string} = delegateArray[i]
+      if (!delegate || delegate === "" || delegate === "undefined")
+        continue;
+      if ( delegate.startsWith("atom:btc") ) {
+        const splits = delegate.split(":")
+        delegate = splits[splits.length - 1]
+      }
+      await getProfileDataFromDelegateId(delegate)
+    }
+    setFinding(false)
+  }
+
+  const getProfileDataFromDelegateId = async (delegateId: string) => {
+    const url = `${APIEndpoint}/blockchain.atomicals.get?params=[\"${delegateId}\"]`
+    const response = await axios.get(url)
+    if (response.data && response.data.success) {
+      const { mint_data } = response.data.response.result
+      console.log(mint_data)
+      const { name, desc, image, links, wallets, collections } = mint_data.fields
+
+      if (image) {
+        if (image.startsWith("atom:btc")) {
+          const splits = image.split(":")
+          setImageSrc(splits[splits.length - 1])
+        }
+      }
+    }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!imageSrc)
+      if (!atomicalId)
+        return;
+      const historyArray = await getStateHistoryFromAtomicalId(atomicalId)
+      getRecursiveProfileData(historyArray)
+    }
+    if (atomicalId !== "")
+      fetchData();
+  }, [atomicalId])
+
+  useEffect(() => {
+    const refreshImage = async () => {
+      if (!imageSrc || imageSrc === "undefined" || imageSrc === "")
         return;
       try {
         let imageId = imageSrc
@@ -23,17 +88,10 @@ export const ImageFromNFTAtomicalId = ({ imageSrc, dataLoading, additionalClass 
         }
         if (imageId.indexOf("/") > -1)
           imageId = imageSrc.split("/")[0]
-
+  
         let value: any, svgFlag = false
-        if (isStorage) {
-          if (imageId.endsWith("i0"))
-            imageId = imageId.substring(0, imageId.length - 2)
-          const response = await fetch(`${APIEndpoint}/blockchain.transaction.get?params=["${imageId}",0]`);
-          const apiData = await response.json();
-          value = apiData.response
-        }
-        else {
-          const response = await fetch(`${APIEndpoint}/blockchain.atomicals.get_state?params=["${imageId}"]`);
+  
+        const response = await fetch(`${APIEndpoint}/blockchain.atomicals.get_state?params=["${imageId}"]`);
           const apiData = await response.json();
     
           // Function to find the property after "latest" and fetch its "$d" items
@@ -58,10 +116,9 @@ export const ImageFromNFTAtomicalId = ({ imageSrc, dataLoading, additionalClass 
           const { value: latestValue, isSvg: isSvgLatest } = getLatestData(apiData.response.result.state.latest);
           value = latestValue
           svgFlag = isSvgLatest
-        }
   
-        let base64ImageData;
-
+          let base64ImageData;
+  
         if (typeof value === 'string') {
           base64ImageData = Buffer.from(value, 'hex').toString('base64');
         } else if (typeof value === 'object' && value.$b) {
@@ -69,22 +126,20 @@ export const ImageFromNFTAtomicalId = ({ imageSrc, dataLoading, additionalClass 
         } else {
           base64ImageData = ''; // Change this to the default value you want to use
         }
-
+  
         setApiResponse({ base64ImageData, isSvg: svgFlag });
         setIsSvg(svgFlag); // Update isSvg state
-
-        // ... other code
+  
       } catch (error) {
-        console.error(`Error fetching data for: ${imageSrc}`);
-      } finally {
-        // setLoading(false);
+        
       }
     }
-    fetchData();
+    if(!finding)
+      refreshImage()
   }, [imageSrc])
 
   return (
-    <div>
+    <div className="mx-auto">
       {
         apiResponse ? (
           isSvg ? (
@@ -93,7 +148,7 @@ export const ImageFromNFTAtomicalId = ({ imageSrc, dataLoading, additionalClass 
             <Image className={`${additionalClass} rounded-lg`} width={144} height={144} src={`data:image/png;base64,${apiResponse.base64ImageData}`} alt="Delegate Image" />
           )
         ) : (
-          <Skeleton className="w-[144px] h-[144px]" />
+          <Skeleton className="w-[128px] h-[128px]" />
         )
       }
     </div>

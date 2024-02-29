@@ -1,6 +1,6 @@
 import { useContext, useEffect } from "react";
-import { WalletContext } from "@/common/WalletContextProvider";
-import { AppContext } from "@/common/AppContextProvider";
+import { WalletContext } from "@/providers/WalletContextProvider";
+import { AppContext } from "@/providers/AppContextProvider";
 import {
   Menubar,
   MenubarContent,

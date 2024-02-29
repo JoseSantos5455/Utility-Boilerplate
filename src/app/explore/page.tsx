@@ -1,9 +1,11 @@
 "use client"
 import { useContext, useEffect, useState } from "react";
-import { AppContext } from "@/common/AppContextProvider";
-import axios from 'axios'
+
+import { AppContext } from "@/providers/AppContextProvider";
+import getSubrealmsFromTLR from "@/lib/get-subrealms-from-tlr";
+
 import { Input } from "@/components/ui/input";
-import { RealmCard } from "@/components/RealmCard";
+import { RealmCard } from "@/components/profile/RealmCard";
 
 export default function Explore() {
 
@@ -21,50 +23,11 @@ export default function Explore() {
 
   useEffect(() => {
     const firstFetch = async () => {
-      await fetchSubrealms()
+      const subrealms = await getSubrealmsFromTLR(tlr, network)
+      setItems(subrealms)
     }
     firstFetch()
   }, [network])
-
-  const getAtomicalIdFromTLR = async () => {
-    const APIEndpoint = `${network === "testnet" ? process.env.NEXT_PUBLIC_CURRENT_PROXY_TESTNET : process.env.NEXT_PUBLIC_CURRENT_PROXY}/blockchain.atomicals.get_realm_info?params=[\"${tlr}\"]`
-    const response = await axios.get(APIEndpoint)
-    if (response.data && response.data.success) {
-      const { atomical_id } = response.data.response.result
-      return atomical_id
-    }
-    return ""
-  }
-
-  const fetchSubrealms = async () => {
-    const tlr_id = await getAtomicalIdFromTLR()
-
-    let num = 0
-    let found = false
-    do {
-      num ++
-      console.log(num)
-      const APIEndpoint = `${network === "testnet" ? process.env.NEXT_PUBLIC_CURRENT_PROXY_TESTNET : process.env.NEXT_PUBLIC_CURRENT_PROXY}/blockchain.atomicals.find_subrealms?params=[\"${tlr_id}\"]`
-      try {
-        const response = await axios.get(APIEndpoint)
-        if (response.data && response.data.success) {
-          found = true
-          const { result } = response.data.response
-          setItems(result)
-          break;
-        }
-      } catch (error) {
-        continue;
-      } finally {
-        if (found)
-          setPageState('ready')
-      }
-    } while (!found && num < 5)
-
-    if (!found) {
-      setPageState('ready')
-    }
-  }
 
   return (
     <div>
@@ -75,9 +38,10 @@ export default function Explore() {
           disabled={pageState === 'loading'}
           value={searchStr}
           onChange={e => setSearchStr(e.target.value)}
-          onKeyUp={(e) => {
+          onKeyUp={async (e) => {
             if (e.key === 'Enter') {
-              fetchSubrealms()
+              const subrealms = await getSubrealmsFromTLR(tlr, network)
+              setItems(subrealms)
             }
           }}
         />

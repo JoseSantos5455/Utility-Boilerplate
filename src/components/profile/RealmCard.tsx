@@ -1,10 +1,10 @@
 "use client"
 import { useEffect, useContext, useState } from "react"
-import { AppContext } from "@/common/AppContextProvider";
+import { AppContext } from "@/providers/AppContextProvider";
 import axios from 'axios'
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import Image from "next/image";
-import { ImageFromRealmAtomicalId } from "@/app/profile/ImageFromRealmAtomicalId";
+import { ImageFromRealmAtomicalId } from "./ImageFromRealmAtomicalId";
 
 import {
   Card,
