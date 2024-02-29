@@ -1,7 +1,7 @@
 import { ElectrumApiInterface } from "../api/electrum-api.interface";
 import { CommandInterface } from "./command.interface";
 import { KeyPairInfo, getKeypairInfo } from "../utils/address-keypair-path";
-import { AtomicalsPayload, NETWORK, RBF_INPUT_SEQUENCE, getAndCheckAtomicalInfo, logBanner, prepareCommitRevealConfig } from "./command-helpers";
+import { AtomicalsPayload, NETWORK, RBF_INPUT_SEQUENCE, getAndCheckAtomicalInfo, logBanner, prepareCommitRevealConfig, prepareCommitRevealConfigWithChildXOnlyPubkey } from "./command-helpers";
 import * as ecc from '@bitcoinerlab/secp256k1';
 const bitcoin = require('bitcoinjs-lib');
 bitcoin.initEccLib(ecc);
@@ -19,6 +19,7 @@ import { BaseRequestOptions } from "../interfaces/api.interface";
 import { BASE_BYTES, DUST_AMOUNT, FeeCalculations, INPUT_BYTES_BASE, OUTPUT_BYTES_BASE } from "../utils/atomical-operation-builder";
 import { getFundingUtxo } from "../utils/select-funding-utxo";
 import { IInputUtxoPartial } from "../types/UTXO.interface";
+import { detectAddressTypeToScripthash } from "../utils/address-helpers";
 
 export interface SetProfileCommandResultInterface {
   success: boolean;
@@ -78,14 +79,17 @@ export class SetProfileCommand implements CommandInterface {
 
     let scriptP2TR: any = null;
     let hashLockP2TR: any = null;
-    
+    let atomicalId: string | null = null;
+    let commitTxid: string | null = null;
+    let revealTxid: string | null = null;
+
     const mockAtomPayload = new AtomicalsPayload(copiedData);
     const payloadSize = mockAtomPayload.cbor().length;
 
     const mockBaseCommitForFeeCalculation: { scriptP2TR: any; hashLockP2TR: any } =
-      prepareCommitRevealConfig(
+      prepareCommitRevealConfigWithChildXOnlyPubkey(
         'mod',
-        clientKeypairInfo,
+        clientKeypairInfo.childNodeXOnlyPubkey,
         mockAtomPayload
       );
     const fees: FeeCalculations =
@@ -106,14 +110,17 @@ export class SetProfileCommand implements CommandInterface {
       scriptP2TR: any;
       hashLockP2TR: any;
       hashscript: any;
-    } = prepareCommitRevealConfig(
+    } = prepareCommitRevealConfigWithChildXOnlyPubkey(
       "mod",
-      clientKeypairInfo,
+      clientKeypairInfo.childNodeXOnlyPubkey,
       atomPayload
     );
+
+    console.log(updatedBaseCommit.scriptP2TR.address)
   
     let psbtStart = new Psbt({ network: bitcoin.networks.testnet });
     psbtStart.setVersion(1);
+    const { output } = detectAddressTypeToScripthash(clientKeypairInfo.address)
 
     psbtStart.addInput({
       hash: fundingUtxo.txid,
@@ -123,12 +130,12 @@ export class SetProfileCommand implements CommandInterface {
       ),
       witnessUtxo: {
           value: fundingUtxo.value,
-          script: Buffer.from(clientKeypairInfo.output, "hex"),
+          script: Buffer.from(output, "hex"),
       },
     });
 
     psbtStart.addOutput({
-      address: updatedBaseCommit.scriptP2TR.address,
+      address: clientKeypairInfo.address,
       value: this.getOutputValueForCommit(fees),
     });
 
@@ -139,47 +146,81 @@ export class SetProfileCommand implements CommandInterface {
       clientKeypairInfo.address
     );
 
-    psbtStart.finalizeAllInputs()
-
     psbtStart = await waitForUserToSign(psbtStart.toHex())
 
+    scriptP2TR = updatedBaseCommit.scriptP2TR;
+    hashLockP2TR = updatedBaseCommit.hashLockP2TR;
 
 
+    const utxoOfCommitAddress = await getFundingUtxo(
+      this.electrumApi,
+      clientKeypairInfo.address,
+      this.getOutputValueForCommit(fees),
+      false,
+      5
+    );
+    commitTxid = utxoOfCommitAddress.txid;
+    atomicalId = commitTxid + "i0"; // Atomicals are always minted at the 0'th output
 
+    const tapLeafScript = {
+      leafVersion: hashLockP2TR.redeem.redeemVersion,
+      script: hashLockP2TR.redeem.output,
+      controlBlock: hashLockP2TR.witness![hashLockP2TR.witness!.length - 1],
+    };
 
-    // psbt.addInput({
-    //   sequence: this.options.rbf ? RBF_INPUT_SEQUENCE : undefined,
-    //   hash: utxo.txid,
-    //   index: utxo.outputIndex,
-    //   witnessUtxo: { value: utxo.value, script: keypairFundingInfo.output },
-    //   tapInternalKey: keypairFundingInfo.childNodeXOnlyPubkey,
-    // });
+    let totalInputsforReveal = 0; // We calculate the total inputs for the reveal to determine to make change output or not
+    let totalOutputsForReveal = 0; // Calculate total outputs for the reveal and compare to totalInputsforReveal and reveal fee
+    let nonce = Math.floor(Math.random() * 100000000);
+    let unixTime = Math.floor(Date.now() / 1000);
+    let psbt = new Psbt({ network: NETWORK });
+    psbt.setVersion(1);
+    psbt.addInput({
+      sequence: this.options.rbf ? RBF_INPUT_SEQUENCE : undefined,
+      hash: utxoOfCommitAddress.txid,
+      index: utxoOfCommitAddress.vout,
+      witnessUtxo: {
+        value: utxoOfCommitAddress.value,
+        script: Buffer.from(output, "hex"),
+      },
+      tapLeafScript: [tapLeafScript],
+    });
+    totalInputsforReveal += utxoOfCommitAddress.value;
 
-    // for (const paymentOutput of this.paymentOutputs) {
-    //   psbt.addOutput({
-    //     value: paymentOutput.value,
-    //     address: paymentOutput.address,
-    //   })
+    for (const additionalInput of this.inputUtxos) {
+      psbt.addInput({
+        sequence: this.options.rbf ? RBF_INPUT_SEQUENCE : undefined,
+        hash: additionalInput.utxo.hash,
+        index: additionalInput.utxo.index,
+        witnessUtxo: additionalInput.utxo.witnessUtxo,
+        tapInternalKey:
+          additionalInput.keypairInfo.childNodeXOnlyPubkey,
+      });
+      totalInputsforReveal += additionalInput.utxo.witnessUtxo.value;
+    }
+
+    for (const additionalOutput of this.additionalOutputs) {
+      psbt.addOutput({
+        address: additionalOutput.address,
+        value: additionalOutput.value,
+      });
+      totalOutputsForReveal += additionalOutput.value;
+    }
+
+    psbt = await waitForUserToSign(psbt.toHex())
+    // let noncesGenerated = 0;
+    // if (noncesGenerated % 10000 == 0) {
+    //   unixTime = Math.floor(Date.now() / 1000);
     // }
-  
-    // psbt.addOutput({
-    //   script: paymentRecieptOpReturn,
-    //   value: 0,
-    // })
-    // pushInfo({
-    //   'pending-state': `Signing transaction...`
-    // })
-    // // Add op return here
-    // psbt.signInput(0, keypairFundingInfo.tweakedChildNode)
-    // psbt.finalizeAllInputs();
-    // const tx = psbt.extractTransaction();
-    // const rawtx = tx.toHex();
-    // // console.log('rawtx', rawtx);
-    // // console.log(`Constructed Atomicals Payment, attempting to broadcast: ${tx.getId()}`);
-    // // console.log(`About to broadcast`);
-    // pushInfo({'pending-state': 'Broadcasting transaction...'})
-    // let broadcastedTxId = await this.electrumApi.broadcast(rawtx);
-    // pushInfo({'pending-state': 'Success'})
+    // const data = Buffer.from(unixTime + ":" + nonce, "utf8");
+    // const embed = bitcoin.payments.embed({ data: [data] });
+
+    // if (performBitworkForRevealTx) {
+    //   psbt.addOutput({
+    //       script: embed.output!,
+    //       value: 0,
+    //   });
+    // }
+
     return null;
   }
 
