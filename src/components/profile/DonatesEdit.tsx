@@ -33,7 +33,7 @@ export default function DonatesEdit ({value, onEdit}: {value: any[], onEdit: Fun
       <div className="lg:grid lg:grid-cols-2 flex flex-col gap-x-10 gap-y-2 mt-4 mx-auto">
         {
           value.map((elem: any) => (
-            <div className="flex flex-row items-center gap-2 ">
+            <div key={elem.address} className="flex flex-row items-center gap-2 ">
               <DonateIcon type={elem.type} />
               <div>
                 {elem.address.substring(0, 5)}...{elem.address.substring(elem.address.length - 5, elem.address.length)}
