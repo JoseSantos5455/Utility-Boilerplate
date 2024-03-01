@@ -1,4 +1,4 @@
-export const DollarIcon = (props: any) => (
+export const BitcoinIcon = (props: any) => (
   <svg
     aria-hidden="true"
     focusable="false"

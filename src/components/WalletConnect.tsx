@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/menubar";
 import { Button } from "./ui/button";
 import Link from "next/link";
-import { DollarIcon } from "./icons/DollarIcon";
+import { BitcoinIcon } from "./icons/BitcoinIcon";
 import { RepairIcon } from "./icons/RepairIcon";
 import { Switch } from "./ui/switch";
 import { createMnemonicPhrase } from "@/app/atomical-lib/utils/create-mnemonic-phrase";
@@ -273,7 +273,7 @@ export const WalletConnect = () => {
           <MenubarSeparator />
           <div className="w-full flex content-center items-center justify-between">
             {network === 'bitcoin' ?
-              <DollarIcon /> : <RepairIcon />
+              <BitcoinIcon /> : <RepairIcon />
             }
             <Switch
               checked={network === 'bitcoin'}
