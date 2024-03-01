@@ -154,7 +154,7 @@ export default function Profile () {
         <div>Your On-Chain Profile</div>
         <Select value={currentRealm} onValueChange={(val: any) => setCurrentRealm(val)}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder={"Select your realm"} />
+            <SelectValue placeholder="Select your realm" />
           </SelectTrigger>
           <SelectContent>
             {

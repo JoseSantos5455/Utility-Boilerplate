@@ -46,7 +46,10 @@ export default function NameEdit({value, onEdit}: {value: any[], onEdit: Functio
       type = "instagram"
     }
 
-    const splits = link.split("/")
+    let toBeSplit = link
+    if (toBeSplit.endsWith("/") || toBeSplit.endsWith("\\")) 
+      toBeSplit = toBeSplit.substring(0, toBeSplit.length - 1)
+    const splits = toBeSplit.split("/")
     if (splits.length > 0)
       name = splits[splits.length - 1]
 
