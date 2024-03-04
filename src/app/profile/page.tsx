@@ -145,8 +145,11 @@ export default function Profile () {
   const signPsbts = async (toSignPsbts: any[]) => {
     for (let i = 0; i < toSignPsbts.length; i++) {
       const psbt = toSignPsbts[i];
-      // const signedPsbt = await window.wizz.signPsbt(psbt)
-      let res = await window.wizz.pushPsbt(psbt)
+      const signedPsbt = await window.wizz.signPsbt(psbt)
+      console.log(signedPsbt)
+      await window.wizz.pushPsbt(signedPsbt)
+      return signedPsbt
+      // let res = await window.wizz.pushPsbt(psbt)
       // console.log(res)
     }
     // toSignPsbts.map((psbt: any) => {

@@ -20,6 +20,7 @@ import { BASE_BYTES, DUST_AMOUNT, FeeCalculations, INPUT_BYTES_BASE, OUTPUT_BYTE
 import { getFundingUtxo } from "../utils/select-funding-utxo";
 import { IInputUtxoPartial } from "../types/UTXO.interface";
 import { detectAddressTypeToScripthash } from "../utils/address-helpers";
+import { witnessStackToScriptWitness } from "./witness_stack_to_script_witness";
 
 export interface SetProfileCommandResultInterface {
   success: boolean;
@@ -93,7 +94,9 @@ export class SetProfileCommand implements CommandInterface {
     const mockBaseCommitForFeeCalculation: { scriptP2TR: any; hashLockP2TR: any } =
       prepareCommitRevealConfigWithChildXOnlyPubkey(
         'mod',
-        clientKeypairInfo.childNodeXOnlyPubkey,
+        // clientKeypairInfo.childNodeXOnlyPubkey,
+        // justtest
+        fundingKeypair.childNodeXOnlyPubkey,
         mockAtomPayload
       );
     const fees: FeeCalculations =
@@ -104,7 +107,9 @@ export class SetProfileCommand implements CommandInterface {
 
     const fundingUtxo = await getFundingUtxo(
       this.electrumApi,
-      clientKeypairInfo.address,
+      // clientKeypairInfo.address,
+      // justtest
+      fundingKeypair.address,
       fees.commitAndRevealFeePlusOutputs
     );
     this.electrumApi.close();
@@ -116,10 +121,17 @@ export class SetProfileCommand implements CommandInterface {
       hashscript: any;
     } = prepareCommitRevealConfigWithChildXOnlyPubkey(
       "mod",
-      clientKeypairInfo.childNodeXOnlyPubkey,
+      // clientKeypairInfo.childNodeXOnlyPubkey,
+      // justtest
+      fundingKeypair.childNodeXOnlyPubkey,
       atomPayload
     );
 
+    console.log(fundingKeypair.address)
+    console.log(fundingKeypair.childNode)
+    console.log(fundingKeypair.childNodeXOnlyPubkey)
+    console.log(fundingKeypair.tweakedChildNode)
+    console.log(fundingKeypair.tweakedChildNode.address)
     console.log(updatedBaseCommit.scriptP2TR.address)
   
     let psbtStart = new Psbt({ network: bitcoin.networks.testnet });
@@ -130,16 +142,20 @@ export class SetProfileCommand implements CommandInterface {
       hash: fundingUtxo.txid,
       index: fundingUtxo.index,
       tapInternalKey: Buffer.from(
-          clientKeypairInfo.childNodeXOnlyPubkey as number[]
+        // clientKeypairInfo.childNodeXOnlyPubkey as number[]
+        // justtest
+        fundingKeypair.childNodeXOnlyPubkey as number[]
       ),
       witnessUtxo: {
           value: fundingUtxo.value,
-          script: Buffer.from(output, "hex"),
+          // script: Buffer.from(output, "hex"),   // this is suspicious
+          // justtest
+          script: Buffer.from(fundingKeypair.output, "hex")
       },
     });
 
     psbtStart.addOutput({
-      address: clientKeypairInfo.address,
+      address: updatedBaseCommit.scriptP2TR.address,    // this might be right
       value: this.getOutputValueForCommit(fees),
     });
 
@@ -147,12 +163,42 @@ export class SetProfileCommand implements CommandInterface {
       fundingUtxo.value,
       fees,
       psbtStart,
-      clientKeypairInfo.address
+      clientKeypairInfo.address   // address where the extra sats are being come back
+      // justtest
+      // let`s keep this for a while
     );
 
-    psbtStart.finalizeInput(0)
+    // justtest
+    psbtStart.signInput(0, fundingKeypair.tweakedChildNode)
+    psbtStart.finalizeAllInputs()
+    const interTx = psbtStart.extractTransaction();
+    const rawtx = interTx.toHex();
+    // await AtomicalOperationBuilder.finalSafetyCheckForExcessiveFee(
+    //     psbtStart,
+    //     interTx
+    // );
+    let tx_result = await this.electrumApi.broadcast(rawtx)
+    // if (!this.broadcastWithRetries(rawtx)) {
+    //   console.log("Error sending", interTx.getId(), rawtx);
+    //   throw new Error(
+    //     "Unable to broadcast commit transaction after attempts: " + interTx.getId()
+    //   );
+    // } else {
+    //   console.log("Success sent tx: ", interTx.getId());
+    // }
+
+
+
+
+
+
+
+    // psbtStart.finalizeInput(0)    // this is the problem. what is fundingKeypair.tweakedChildNode ???
+    // first to know what is ChildNode.tweak ? can I do this with wallet ?
+
     // psbtStart.signInput(0, fundingKeypair.tweakedChildNode)
-    psbtStart = await waitForUserToSign([psbtStart.toHex()])
+    // psbtStart.finalizeInput(0)
+    // psbtStart = await waitForUserToSign([psbtStart.toHex()])
 
     scriptP2TR = updatedBaseCommit.scriptP2TR;
     hashLockP2TR = updatedBaseCommit.hashLockP2TR;
@@ -160,7 +206,7 @@ export class SetProfileCommand implements CommandInterface {
 
     const utxoOfCommitAddress = await getFundingUtxo(
       this.electrumApi,
-      clientKeypairInfo.address,
+      scriptP2TR.address,
       this.getOutputValueForCommit(fees),
       false,
       5
@@ -186,7 +232,8 @@ export class SetProfileCommand implements CommandInterface {
       index: utxoOfCommitAddress.vout,
       witnessUtxo: {
         value: utxoOfCommitAddress.value,
-        script: Buffer.from(output, "hex"),
+        // script: Buffer.from(output, "hex"),  // this is issue
+        script: hashLockP2TR.output!,
       },
       tapLeafScript: [tapLeafScript],
     });
@@ -212,7 +259,20 @@ export class SetProfileCommand implements CommandInterface {
       totalOutputsForReveal += additionalOutput.value;
     }
 
-    psbt = await waitForUserToSign([psbtStart.toHex(), psbt.toHex()])
+    // console.log(psbt.toHex())
+    psbt.signInput(0, fundingKeypair.childNode);
+    const customFinalizer = (_inputIndex: number, input: any) => {
+      const scriptSolution = [input.tapScriptSig[0].signature];
+      const witness = scriptSolution
+          .concat(tapLeafScript.script)
+          .concat(tapLeafScript.controlBlock);
+      return {
+          finalScriptWitness: witnessStackToScriptWitness(witness),
+      };
+    };
+    psbt.finalizeInput(0, customFinalizer)
+    // console.log(psbt.toHex())
+    psbt = await waitForUserToSign([psbt.toHex()])
     // let noncesGenerated = 0;
     // if (noncesGenerated % 10000 == 0) {
     //   unixTime = Math.floor(Date.now() / 1000);
