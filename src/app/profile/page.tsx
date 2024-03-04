@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { useContext, useEffect, useState } from "react"
-import { Atomicals, ElectrumApi } from "../atomical-lib"
+import { Atomicals, ElectrumApi, createKeyPair } from "../atomical-lib"
 import { CommandInterface } from "../atomical-lib/commands/command.interface"
 import { getKeypairInfo } from "../atomical-lib/utils/address-keypair-path"
 import { SetProfileCommand } from "../atomical-lib/commands/set-profile-command"
@@ -46,14 +46,14 @@ import LinksEdit from "@/components/profile/LinksEdit"
 import DonatesEdit from "@/components/profile/DonatesEdit"
 
 export default function Profile () {
-  const { network, showAlert, showError, tlr } = useContext(AppContext)
+  const { network, showAlert, showError, tlr, mnemonic } = useContext(AppContext)
   const { walletData } = useContext(WalletContext)
 
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false)
   const [realmList, setRealmList] = useState<any>([])
   const [subrealmList, setSubrealmList] = useState<any>([])
   const [pfpNftList, setPfpNftList] = useState<any>([])
-  const [currentRealm, setCurrentRealm] = useState("")
+  const [currentRealm, setCurrentRealm] = useState<any>(null)
 
   const [selectedPFPData, setSelectedPFPData] = useState<any>()
   const [isPFPSheetOpen, setIsPFPSheetOpen] = useState(false)
@@ -112,20 +112,28 @@ export default function Profile () {
   }
 
   const dummyData = {
-    "d": "2435aa7c81bacaf06d7ce74f8e44406730a318a1419cce98530ea0eae15a3c93i0"
+    // "d": "2435aa7c81bacaf06d7ce74f8e44406730a318a1419cce98530ea0eae15a3c93i0"
+    "d": "0000aa7c81bacaf06d7ce74f8e44406730a318a1419cce98530ea0eae15a3c93i0"
   }
 
-  const updateProfile_ = async () => {  
-    const publicKey = await window.wizz.getPublicKey()
-    
-    const { atomicalsUTXOs, atomicalNFTs, regularUTXOs, scripthash }: { atomicalsUTXOs: any[], atomicalNFTs: any[], regularUTXOs: any[], scripthash: string} = await window.wizz.getAtomicalsBalance()
-    console.log(atomicalNFTs)
-    const atomicalId = atomicalNFTs[11]["atomical_id"]
+  const testInscribe = async () => {  
+    const publicKey = await window.wizz.getPublicKey()    
+    // const { atomicalsUTXOs, atomicalNFTs, regularUTXOs, scripthash }: { atomicalsUTXOs: any[], atomicalNFTs: any[], regularUTXOs: any[], scripthash: string} = await window.wizz.getAtomicalsBalance()
+
+    if (!currentRealm) {
+      showAlert("Please choose your subrealm and continue.")
+      return;
+    }
+    let { atomical_id: atomicalId } = currentRealm
+    atomicalId = atomicalId.replaceAll("\"", "")
+
+    const funding_address = await createKeyPair(mnemonic, "m/86'/0'/0'/1/0")
+    const { WIF } = funding_address
 
     const atomicals = new Atomicals(ElectrumApi.createClient((network === 'testnet' ? process.env.NEXT_PUBLIC_CURRENT_PROXY_TESTNET : process.env.NEXT_PUBLIC_CURRENT_PROXY) || ''));
     try {
       await atomicals.electrumApi.open();
-      const command: CommandInterface = new SetProfileCommand(atomicals.electrumApi, { satsbyte: 10 }, atomicalId, dummyData, publicKey);
+      const command: CommandInterface = new SetProfileCommand(atomicals.electrumApi, { satsbyte: 10 }, atomicalId, dummyData, WIF, publicKey);
       const res = await command.run(signPsbts);
     } catch (error: any) {
       console.log(error)
@@ -134,10 +142,18 @@ export default function Profile () {
     }
   }
 
-  const signPsbts = async (toSignPsbt: any) => {
-    const signedPsbt = await window.wizz.signPsbt(toSignPsbt)
-    await window.wizz.pushPsbt(signedPsbt)
-    console.log(signedPsbt)
+  const signPsbts = async (toSignPsbts: any[]) => {
+    for (let i = 0; i < toSignPsbts.length; i++) {
+      const psbt = toSignPsbts[i];
+      // const signedPsbt = await window.wizz.signPsbt(psbt)
+      let res = await window.wizz.pushPsbt(psbt)
+      // console.log(res)
+    }
+    // toSignPsbts.map((psbt: any) => {
+
+    // })
+    // // await window.wizz.pushPsbt(signedPsbt)
+    // console.log(signedPsbts)
   }
 
   if (!walletData.connected) {
@@ -148,11 +164,19 @@ export default function Profile () {
     )
   }
 
+  const getHistory = async () => {
+    let { atomical_id }: { atomical_id: string} = currentRealm
+    atomical_id = atomical_id.replaceAll("\"", "")
+    console.log(atomical_id)
+    const res = await getStateHistoryFromAtomicalId(atomical_id, network)
+    console.log(res)
+  }
+
   return (
     <div className="text-center justify-center lg:w-6/12 lg:mx-auto mx-8">
       <div className="my-4 flex flex-col items-center justify-center gap-4">
         <div>Your On-Chain Profile</div>
-        <Select value={currentRealm} onValueChange={(val: any) => setCurrentRealm(val)}>
+        <Select value={!currentRealm ? "" : currentRealm.atomical_id} onValueChange={(val: any) => setCurrentRealm({atomical_id: val.toString()})}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select your realm" />
           </SelectTrigger>
@@ -205,8 +229,11 @@ export default function Profile () {
         <LinksEdit value={links} onEdit={(data: any) => setLinks(data)} />
         <DonatesEdit value={donates} onEdit={(data: any) => setDonates(data)} />
         <Button className="lg:w-1/2 w-full lg:mx-auto" onClick={() => {
-          setIsUpdateDialogOpen(true)
+          testInscribe()
         }}>Publish On-Chain</Button>
+        <Button className="lg:w-1/2 w-full lg:mx-auto" onClick={() => {
+          getHistory()
+        }}>Get History</Button>
       </div>
 
       <Dialog open={isUpdateDialogOpen} onOpenChange={onCloseUpdateDialog} modal>

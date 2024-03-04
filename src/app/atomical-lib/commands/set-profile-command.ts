@@ -43,6 +43,7 @@ export class SetProfileCommand implements CommandInterface {
     private options: BaseRequestOptions,
     private atomicalId: string,
     private userData: any,
+    private fundingWIF: any,
     private publicKey: any
   ) {
   }
@@ -50,8 +51,11 @@ export class SetProfileCommand implements CommandInterface {
   async run(waitForUserToSign: Function): Promise<any> {
     const clientKeypair = ECPair.fromPublicKey(this.publicKey);
     const clientKeypairInfo: KeyPairInfo = getKeypairInfo(clientKeypair)
+    console.log(this.fundingWIF)
+    const fundingKeypairRaw = ECPair.fromWIF(this.fundingWIF);
+    const fundingKeypair: KeyPairInfo = getKeypairInfo(fundingKeypairRaw)
 
-    const { atomicalInfo, locationInfo, inputUtxoPartial } = await getAndCheckAtomicalInfo(this.electrumApi, this.atomicalId, clientKeypairInfo.address);
+    const { inputUtxoPartial } = await getAndCheckAtomicalInfo(this.electrumApi, this.atomicalId, clientKeypairInfo.address);
     this.inputUtxos.push({
       utxo: inputUtxoPartial,
       keypairInfo: clientKeypairInfo
@@ -146,7 +150,9 @@ export class SetProfileCommand implements CommandInterface {
       clientKeypairInfo.address
     );
 
-    psbtStart = await waitForUserToSign(psbtStart.toHex())
+    psbtStart.finalizeInput(0)
+    // psbtStart.signInput(0, fundingKeypair.tweakedChildNode)
+    psbtStart = await waitForUserToSign([psbtStart.toHex()])
 
     scriptP2TR = updatedBaseCommit.scriptP2TR;
     hashLockP2TR = updatedBaseCommit.hashLockP2TR;
@@ -206,7 +212,7 @@ export class SetProfileCommand implements CommandInterface {
       totalOutputsForReveal += additionalOutput.value;
     }
 
-    psbt = await waitForUserToSign(psbt.toHex())
+    psbt = await waitForUserToSign([psbtStart.toHex(), psbt.toHex()])
     // let noncesGenerated = 0;
     // if (noncesGenerated % 10000 == 0) {
     //   unixTime = Math.floor(Date.now() / 1000);
