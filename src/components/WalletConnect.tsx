@@ -222,7 +222,7 @@ export const WalletConnect = () => {
         <MenubarTrigger>
           {walletData.connected ? (
             <>
-              {walletData.primary_addr.slice(0, 4)}...{walletData.primary_addr.slice(-4)}
+              {walletData.pendingTxCount}:{walletData.primary_addr.slice(0, 4)}...{walletData.primary_addr.slice(-4)}
             </>
           ) : (
             <>Connect Wallet</>

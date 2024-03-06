@@ -52,7 +52,6 @@ export class SetProfileCommand implements CommandInterface {
   async run(waitForUserToSign: Function): Promise<any> {
     const clientKeypair = ECPair.fromPublicKey(this.publicKey);
     const clientKeypairInfo: KeyPairInfo = getKeypairInfo(clientKeypair)
-    console.log(this.fundingWIF)
     const fundingKeypairRaw = ECPair.fromWIF(this.fundingWIF);
     const fundingKeypair: KeyPairInfo = getKeypairInfo(fundingKeypairRaw)
 
@@ -80,22 +79,17 @@ export class SetProfileCommand implements CommandInterface {
         console.log('satsbyte fee manually set to: ', this.options.satsbyte)
     } 
 
-    let copiedData = Object.assign({}, this.userData); //
+    let copiedData = Object.assign({}, this.userData);
 
     let scriptP2TR: any = null;
     let hashLockP2TR: any = null;
-    let atomicalId: string | null = null;
     let commitTxid: string | null = null;
-    let revealTxid: string | null = null;
 
     const mockAtomPayload = new AtomicalsPayload(copiedData);
-    const payloadSize = mockAtomPayload.cbor().length;
 
     const mockBaseCommitForFeeCalculation: { scriptP2TR: any; hashLockP2TR: any } =
       prepareCommitRevealConfigWithChildXOnlyPubkey(
         'mod',
-        // clientKeypairInfo.childNodeXOnlyPubkey,
-        // justtest
         fundingKeypair.childNodeXOnlyPubkey,
         mockAtomPayload
       );
@@ -105,10 +99,9 @@ export class SetProfileCommand implements CommandInterface {
         false
       );
 
+    console.log(fees)
     const fundingUtxo = await getFundingUtxo(
       this.electrumApi,
-      // clientKeypairInfo.address,
-      // justtest
       fundingKeypair.address,
       fees.commitAndRevealFeePlusOutputs
     );
@@ -121,35 +114,21 @@ export class SetProfileCommand implements CommandInterface {
       hashscript: any;
     } = prepareCommitRevealConfigWithChildXOnlyPubkey(
       "mod",
-      // clientKeypairInfo.childNodeXOnlyPubkey,
-      // justtest
       fundingKeypair.childNodeXOnlyPubkey,
       atomPayload
     );
 
-    console.log(fundingKeypair.address)
-    console.log(fundingKeypair.childNode)
-    console.log(fundingKeypair.childNodeXOnlyPubkey)
-    console.log(fundingKeypair.tweakedChildNode)
-    console.log(fundingKeypair.tweakedChildNode.address)
-    console.log(updatedBaseCommit.scriptP2TR.address)
-  
     let psbtStart = new Psbt({ network: bitcoin.networks.testnet });
     psbtStart.setVersion(1);
-    const { output } = detectAddressTypeToScripthash(clientKeypairInfo.address)
 
     psbtStart.addInput({
       hash: fundingUtxo.txid,
       index: fundingUtxo.index,
       tapInternalKey: Buffer.from(
-        // clientKeypairInfo.childNodeXOnlyPubkey as number[]
-        // justtest
         fundingKeypair.childNodeXOnlyPubkey as number[]
       ),
       witnessUtxo: {
           value: fundingUtxo.value,
-          // script: Buffer.from(output, "hex"),   // this is suspicious
-          // justtest
           script: Buffer.from(fundingKeypair.output, "hex")
       },
     });
@@ -164,45 +143,18 @@ export class SetProfileCommand implements CommandInterface {
       fees,
       psbtStart,
       clientKeypairInfo.address   // address where the extra sats are being come back
-      // justtest
-      // let`s keep this for a while
     );
 
-    // justtest
     psbtStart.signInput(0, fundingKeypair.tweakedChildNode)
     psbtStart.finalizeAllInputs()
     const interTx = psbtStart.extractTransaction();
     const rawtx = interTx.toHex();
-    // await AtomicalOperationBuilder.finalSafetyCheckForExcessiveFee(
-    //     psbtStart,
-    //     interTx
-    // );
+
     let tx_result = await this.electrumApi.broadcast(rawtx)
-    // if (!this.broadcastWithRetries(rawtx)) {
-    //   console.log("Error sending", interTx.getId(), rawtx);
-    //   throw new Error(
-    //     "Unable to broadcast commit transaction after attempts: " + interTx.getId()
-    //   );
-    // } else {
-    //   console.log("Success sent tx: ", interTx.getId());
-    // }
 
-
-
-
-
-
-
-    // psbtStart.finalizeInput(0)    // this is the problem. what is fundingKeypair.tweakedChildNode ???
-    // first to know what is ChildNode.tweak ? can I do this with wallet ?
-
-    // psbtStart.signInput(0, fundingKeypair.tweakedChildNode)
-    // psbtStart.finalizeInput(0)
-    // psbtStart = await waitForUserToSign([psbtStart.toHex()])
 
     scriptP2TR = updatedBaseCommit.scriptP2TR;
     hashLockP2TR = updatedBaseCommit.hashLockP2TR;
-
 
     const utxoOfCommitAddress = await getFundingUtxo(
       this.electrumApi,
@@ -212,7 +164,6 @@ export class SetProfileCommand implements CommandInterface {
       5
     );
     commitTxid = utxoOfCommitAddress.txid;
-    atomicalId = commitTxid + "i0"; // Atomicals are always minted at the 0'th output
 
     const tapLeafScript = {
       leafVersion: hashLockP2TR.redeem.redeemVersion,
@@ -232,7 +183,6 @@ export class SetProfileCommand implements CommandInterface {
       index: utxoOfCommitAddress.vout,
       witnessUtxo: {
         value: utxoOfCommitAddress.value,
-        // script: Buffer.from(output, "hex"),  // this is issue
         script: hashLockP2TR.output!,
       },
       tapLeafScript: [tapLeafScript],
@@ -259,7 +209,6 @@ export class SetProfileCommand implements CommandInterface {
       totalOutputsForReveal += additionalOutput.value;
     }
 
-    // console.log(psbt.toHex())
     psbt.signInput(0, fundingKeypair.childNode);
     const customFinalizer = (_inputIndex: number, input: any) => {
       const scriptSolution = [input.tapScriptSig[0].signature];
@@ -271,21 +220,7 @@ export class SetProfileCommand implements CommandInterface {
       };
     };
     psbt.finalizeInput(0, customFinalizer)
-    // console.log(psbt.toHex())
     psbt = await waitForUserToSign([psbt.toHex()])
-    // let noncesGenerated = 0;
-    // if (noncesGenerated % 10000 == 0) {
-    //   unixTime = Math.floor(Date.now() / 1000);
-    // }
-    // const data = Buffer.from(unixTime + ":" + nonce, "utf8");
-    // const embed = bitcoin.payments.embed({ data: [data] });
-
-    // if (performBitworkForRevealTx) {
-    //   psbt.addOutput({
-    //       script: embed.output!,
-    //       value: 0,
-    //   });
-    // }
 
     return null;
   }

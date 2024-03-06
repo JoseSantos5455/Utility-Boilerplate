@@ -13,7 +13,7 @@ import { NETWORK } from "../commands/command-helpers"
 const bip32 = BIP32Factory(ecc);
 
 export const toXOnly = (publicKey: any) => {
-    console.log(publicKey)
+    // console.log(publicKey)
     return publicKey.slice(1, 33);
 }
 const bip39 = require('bip39');
@@ -34,7 +34,7 @@ export const createKeyPair = async (phrase: string = '', path = `m/44'/0'/0'/0/0
     }
     const seed = await bip39.mnemonicToSeed(phrase);
     const rootKey = bip32.fromSeed(seed);
-
+    
     const childNodePrimary = rootKey.derivePath(path);
     // const p2pkh = bitcoin.payments.p2pkh({ pubkey: childNodePrimary.publicKey });
     const childNodeXOnlyPubkeyPrimary = toXOnly(childNodePrimary.publicKey);

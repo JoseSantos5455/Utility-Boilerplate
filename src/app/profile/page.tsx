@@ -44,6 +44,9 @@ import NameEdit from "@/components/profile/NameEdit"
 import DescriptionEdit from "@/components/profile/DescriptionEdit"
 import LinksEdit from "@/components/profile/LinksEdit"
 import DonatesEdit from "@/components/profile/DonatesEdit"
+import ClickToChoosePFP from "@/components/profile/ClickToChoosePFP"
+import isProfileNft from "@/lib/is-profile-nft"
+import isPfpNft from "@/lib/is-pfp-nft"
 
 export default function Profile () {
   const { network, showAlert, showError, tlr, mnemonic } = useContext(AppContext)
@@ -53,8 +56,10 @@ export default function Profile () {
   const [realmList, setRealmList] = useState<any>([])
   const [subrealmList, setSubrealmList] = useState<any>([])
   const [pfpNftList, setPfpNftList] = useState<any>([])
+  const [profileNftList, setProfileNftList] = useState<any>([])
   const [currentRealm, setCurrentRealm] = useState<any>(null)
 
+  const [selectedPFPId, setSelectedPFPId] = useState<string>("")
   const [selectedPFPData, setSelectedPFPData] = useState<any>()
   const [isPFPSheetOpen, setIsPFPSheetOpen] = useState(false)
   const [profileName, setProfileName] = useState("Click to edit your name")
@@ -69,7 +74,7 @@ export default function Profile () {
         const { atomicalNFTs }: { atomicalNFTs: any[] } = await window.wizz.getAtomicalsBalance()
         console.log(atomicalNFTs)
 
-        let pfps: any[] = [], realms: any[] = [], subrealms: any[] = []
+        let pfps: any[] = [], realms: any[] = [], subrealms: any[] = [], profiles: any[] = []
         atomicalNFTs.map((elem: any) => {
           const { type, subtype, confirmed, $request_dmitem_status, $request_subrealm_status, $request_realm_status} = elem
           if (type === "NFT") {
@@ -83,7 +88,12 @@ export default function Profile () {
               if ( $request_dmitem_status.status === "verified") pfps.push(elem)
             }
             else if (!subtype) {    // this is not collection, just solo nft
-              pfps.push(elem)
+              if (confirmed || confirmed === "true") {
+                if (isProfileNft(elem))
+                  profiles.push(elem)
+                if (isPfpNft(elem))
+                  pfps.push(elem)
+              }
             }
           }
         })
@@ -92,6 +102,7 @@ export default function Profile () {
           setCurrentRealm(realms[0])
         setSubrealmList(subrealms)
         setPfpNftList(pfps)
+        setProfileNftList(profiles)
       }
     }
 
@@ -113,12 +124,15 @@ export default function Profile () {
 
   const dummyData = {
     // "d": "2435aa7c81bacaf06d7ce74f8e44406730a318a1419cce98530ea0eae15a3c93i0"
-    "d": "0000aa7c81bacaf06d7ce74f8e44406730a318a1419cce98530ea0eae15a3c93i0"
+    "d": "834294414ea77ec09b989f95ced4e45864cd3667b1c25bb282ced02ba00845e6i0"
+  }
+
+  const mintDelegate = async () => {
+
   }
 
   const testInscribe = async () => {  
     const publicKey = await window.wizz.getPublicKey()    
-    // const { atomicalsUTXOs, atomicalNFTs, regularUTXOs, scripthash }: { atomicalsUTXOs: any[], atomicalNFTs: any[], regularUTXOs: any[], scripthash: string} = await window.wizz.getAtomicalsBalance()
 
     if (!currentRealm) {
       showAlert("Please choose your subrealm and continue.")
@@ -149,14 +163,7 @@ export default function Profile () {
       console.log(signedPsbt)
       await window.wizz.pushPsbt(signedPsbt)
       return signedPsbt
-      // let res = await window.wizz.pushPsbt(psbt)
-      // console.log(res)
     }
-    // toSignPsbts.map((psbt: any) => {
-
-    // })
-    // // await window.wizz.pushPsbt(signedPsbt)
-    // console.log(signedPsbts)
   }
 
   if (!walletData.connected) {
@@ -170,7 +177,6 @@ export default function Profile () {
   const getHistory = async () => {
     let { atomical_id }: { atomical_id: string} = currentRealm
     atomical_id = atomical_id.replaceAll("\"", "")
-    console.log(atomical_id)
     const res = await getStateHistoryFromAtomicalId(atomical_id, network)
     console.log(res)
   }
@@ -179,6 +185,13 @@ export default function Profile () {
     <div className="text-center justify-center lg:w-6/12 lg:mx-auto mx-8">
       <div className="my-4 flex flex-col items-center justify-center gap-4">
         <div>Your On-Chain Profile</div>
+        {
+          profileNftList.map((profileNft: any) => (
+            <div>
+              1<span>{profileNft.id}</span>
+            </div>
+          ))
+        }
         <Select value={!currentRealm ? "" : currentRealm.atomical_id} onValueChange={(val: any) => setCurrentRealm({atomical_id: val.toString()})}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select your realm" />
@@ -198,8 +211,7 @@ export default function Profile () {
         </Select>
       </div>
 
-      {/* My profile - {walletData.primary_addr} */}
-      <SelectPFP value={selectedPFPData} onClick={() => setIsPFPSheetOpen(true)} />
+      <ClickToChoosePFP atomicalId={selectedPFPId} data={selectedPFPData} onClick={() => setIsPFPSheetOpen(true)} />
       <Sheet open={isPFPSheetOpen} onOpenChange={() => setIsPFPSheetOpen(false)}>
         <SheetContent>
           <SheetHeader>
@@ -211,6 +223,7 @@ export default function Profile () {
                     pfpNftList.map((elem: any) => (
                       <ImageFromDataClickable 
                         onClick={(data: any) => { 
+                          setSelectedPFPId(elem.atomical_id)
                           setSelectedPFPData(data)
                           setIsPFPSheetOpen(false)
                         }} 
@@ -231,6 +244,9 @@ export default function Profile () {
         <DescriptionEdit value={profileDescription} onEdit={(data: any) => setProfileDescription(data || "Click to write your bio or description.")} />
         <LinksEdit value={links} onEdit={(data: any) => setLinks(data)} />
         <DonatesEdit value={donates} onEdit={(data: any) => setDonates(data)} />
+        <Button className="lg:w-1/2 w-full lg:mx-auto" onClick={() => {
+          mintDelegate()
+        }}>Mint Profile</Button>
         <Button className="lg:w-1/2 w-full lg:mx-auto" onClick={() => {
           testInscribe()
         }}>Publish On-Chain</Button>

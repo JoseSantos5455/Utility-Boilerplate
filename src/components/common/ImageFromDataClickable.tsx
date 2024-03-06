@@ -10,7 +10,6 @@ export default function ImageFromDataClickable({data, key, onClick = (f: any) =>
     if (data.type === "NFT") {
       if (!data.subtype) {
         const { fields } = data.mint_data
-        console.log(fields)
         Object.keys(fields).map((objKey: string) => {
           if (objKey !== "args" && fields[objKey]["$b"]) {
             setIsSvg(objKey.endsWith(".svg"))
