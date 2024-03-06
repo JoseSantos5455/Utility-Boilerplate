@@ -10,6 +10,12 @@ export default function NameEdit({value, onEdit}: {value: string, onEdit: Functi
       className="lg:w-1/2 w-full mx-auto"
       value={editingValue} 
       onChange={(event: any) => setEditingValue(event.target.value)} 
+      onKeyDown={(event: any) => {
+        if (event.key === "Enter") {
+          setIsEditing(false)
+          onEdit(editingValue)
+        }
+      }}
       onBlur={() => {
         setIsEditing(false)
         onEdit(editingValue)
@@ -17,7 +23,7 @@ export default function NameEdit({value, onEdit}: {value: string, onEdit: Functi
     />
   ) : (
     <div className="cursor-pointer" onClick={() => {
-      setEditingValue("")
+      setEditingValue(editingValue)
       setIsEditing(true)
     }}>
       {value}

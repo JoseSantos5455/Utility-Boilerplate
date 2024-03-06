@@ -38,6 +38,8 @@ export default function AppContextProvider({
   const [network, setNetwork] = useState('testnet')
   // const [tlr, ] = useState(process.env.NEXT_PUBLIC_TOP_LEVEL_REALM || 'bullrun')
   const [tlr, ] = useState('gang')
+  // const [tlr, ] = useState('xn--bh9h')
+  
   const [mnemonic, setMnemonic] = useState('')
   const [WIF, setWIF] = useState('')
 

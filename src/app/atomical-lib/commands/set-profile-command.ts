@@ -45,7 +45,7 @@ export class SetProfileCommand implements CommandInterface {
     private atomicalId: string,
     private userData: any,
     private fundingWIF: any,
-    private publicKey: any
+    private publicKey: any,
   ) {
   }
 
@@ -97,9 +97,8 @@ export class SetProfileCommand implements CommandInterface {
       this.calculateFeesRequiredForAccumulatedCommitAndReveal(
         mockBaseCommitForFeeCalculation.hashLockP2TR.redeem.output.length,
         false
-      );
+      );    
 
-    console.log(fees)
     const fundingUtxo = await getFundingUtxo(
       this.electrumApi,
       fundingKeypair.address,

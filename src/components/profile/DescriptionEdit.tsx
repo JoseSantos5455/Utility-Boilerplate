@@ -7,9 +7,15 @@ export default function DescriptionEdit({value, onEdit}: {value: string, onEdit:
   return isEditing ? (
     <Input 
       autoFocus
+      className="lg:w-1/2 w-full lg:mx-auto"
       value={editingValue} 
       onChange={(event: any) => setEditingValue(event.target.value)} 
-      className="lg:w-1/2 w-full lg:mx-auto"
+      onKeyDown={(event: any) => {
+        if (event.key === "Enter") {
+          setIsEditing(false)
+          onEdit(editingValue)
+        }
+      }}
       onBlur={() => {
         setIsEditing(false)
         onEdit(editingValue)
@@ -17,7 +23,7 @@ export default function DescriptionEdit({value, onEdit}: {value: string, onEdit:
     />
   ) : (
     <div className="cursor-pointer" onClick={() => {
-      setEditingValue("")
+      setEditingValue(editingValue)
       setIsEditing(true)
     }}>
       {value}

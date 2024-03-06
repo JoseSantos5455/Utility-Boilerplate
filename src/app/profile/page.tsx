@@ -72,7 +72,7 @@ export default function Profile () {
     const getAtomicals = async () => {
       if (walletData.connected) {
         const { atomicalNFTs }: { atomicalNFTs: any[] } = await window.wizz.getAtomicalsBalance()
-        console.log(atomicalNFTs)
+        // console.log(atomicalNFTs)
 
         let pfps: any[] = [], realms: any[] = [], subrealms: any[] = [], profiles: any[] = []
         atomicalNFTs.map((elem: any) => {
@@ -91,8 +91,9 @@ export default function Profile () {
               if (confirmed || confirmed === "true") {
                 if (isProfileNft(elem))
                   profiles.push(elem)
-                if (isPfpNft(elem))
+                if (isPfpNft(elem)) {
                   pfps.push(elem)
+                }
               }
             }
           }
@@ -101,6 +102,7 @@ export default function Profile () {
         if (realms.length > 0)
           setCurrentRealm(realms[0])
         setSubrealmList(subrealms)
+        console.log(pfps)
         setPfpNftList(pfps)
         setProfileNftList(profiles)
       }
@@ -111,8 +113,12 @@ export default function Profile () {
   }, [walletData, network])
 
   useEffect(() => {
-    console.log(currentRealm)
+    // console.log(currentRealm)
   }, [currentRealm])
+
+  useEffect(() => {
+    // console.log(pfpNftList)
+  }, [pfpNftList])
 
   const openUpdateDialog = () => {
     setIsUpdateDialogOpen(true)
@@ -128,7 +134,28 @@ export default function Profile () {
   }
 
   const mintDelegate = async () => {
+    if (!selectedPFPId) {
+      showError("Please select your pfp.")
+      return
+    }
+    if (!profileName || profileName === "Click to edit your name") {
+      showError("Please edit your name.")
+      return
+    }
+    if (!profileDescription || profileDescription === "Click to write your bio or description.") {
+      showError("Please edit your description.")
+      return
+    }
 
+    const profileJson = {
+      v: "1.1",
+      name: profileName,
+      desc: profileDescription,
+      image: selectedPFPId,
+      links,
+      wallets: donates
+    }
+    console.log(profileJson)
   }
 
   const testInscribe = async () => {  
@@ -160,7 +187,7 @@ export default function Profile () {
     for (let i = 0; i < toSignPsbts.length; i++) {
       const psbt = toSignPsbts[i];
       const signedPsbt = await window.wizz.signPsbt(psbt)
-      console.log(signedPsbt)
+      // console.log(signedPsbt)
       await window.wizz.pushPsbt(signedPsbt)
       return signedPsbt
     }
@@ -217,12 +244,12 @@ export default function Profile () {
           <SheetHeader>
             <SheetTitle>Choose one of your NFT as your avatar.</SheetTitle>
             <SheetDescription>
-              <ScrollArea className="h-[calc(100vh-80px)]">
+              <ScrollArea className="h-[calc(100vh-120px)]">
                 <div className="flex flex-col gap-4">
                   {
                     pfpNftList.map((elem: any) => (
                       <ImageFromDataClickable 
-                        onClick={(data: any) => { 
+                        onClick={(data: any) => {
                           setSelectedPFPId(elem.atomical_id)
                           setSelectedPFPData(data)
                           setIsPFPSheetOpen(false)
